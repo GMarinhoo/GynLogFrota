@@ -1,6 +1,6 @@
-package br.com.gynlog.app;
+package br.com.gynlog.application;
 
-import br.com.gynlog.model.Veiculo;
+import br.com.gynlog.model.entity.Veiculo;
 import br.com.gynlog.util.GerenciadorArquivos;
 import java.io.IOException;
 

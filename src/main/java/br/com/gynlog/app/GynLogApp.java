@@ -1,39 +1,25 @@
 package br.com.gynlog.app;
 
-import br.com.gynlog.util.BackupService;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 
+@SpringBootApplication(scanBasePackages = "br.com.gynlog")
 public class GynLogApp {
 
     public static void main(String[] args) {
-        System.out.println("Iniciando sistema GynLog...");
-        BackupService.realizarBackup();
+        ConfigurableApplicationContext context = new SpringApplicationBuilder(GynLogApp.class)
+                .headless(false)
+                .web(WebApplicationType.NONE)
+                .run(args);
 
-        TipoDespesaController tipoController = new TipoDespesaController();
-        tipoController.inicializarTiposPadrao();
-
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Erro ao definir tema visual: " + e.getMessage());
-        }
+        System.out.println("✅ Backend Spring Boot iniciado com sucesso!");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame janela = new JFrame("GynLog - Sistema de Frota");
-            janela.setSize(800, 600);
-            janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            janela.setLocationRelativeTo(null); // Centraliza na tela
-
-            JLabel label = new JLabel("O Backend está rodando! Aguardando telas do Dev 3...", SwingConstants.CENTER);
-            janela.add(label);
-
-            janela.setVisible(true);
+            JOptionPane.showMessageDialog(null, "Sistema GynLog Rodando!\nInfra Spring: OK");
         });
     }
 }

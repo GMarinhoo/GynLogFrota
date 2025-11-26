@@ -1,4 +1,4 @@
-package br.com.gynlog.model;
+package br.com.gynlog.model.entity;
 
 public class Veiculo {
     private int idVeiculo;

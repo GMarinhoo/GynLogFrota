@@ -1,4 +1,4 @@
-package br.com.gynlog.model.entity;
+package br.com.gynlog.model;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

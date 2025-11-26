@@ -1,4 +1,4 @@
-package br.com.gynlog.model.enums;
+package br.com.gynlog.model;
 
 public class TipoDespesa {
     private int idTipoDespesa;

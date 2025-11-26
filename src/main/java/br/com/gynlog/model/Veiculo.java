@@ -37,7 +37,10 @@ public class Veiculo {
 
     public static Veiculo fromString(String linha) {
         String[] partes = linha.split(";");
-        // O split quebra o texto: "1;ABC;Fiat..." vira ["1", "ABC", "Fiat"...]
+
+        if (partes.length < 6) {
+            throw new IllegalArgumentException("Linha inválida no arquivo de veículos");
+        }
 
         return new Veiculo(
                 Integer.parseInt(partes[0]),

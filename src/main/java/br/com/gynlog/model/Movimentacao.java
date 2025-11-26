@@ -46,13 +46,20 @@ public class Movimentacao {
 
     public static Movimentacao fromString(String linha) {
         String[] partes = linha.split(";");
+
+        if (partes.length < 6) {
+            throw new IllegalArgumentException("Linha inválida no arquivo (dados incompletos): " + linha);
+        }
+
+        String valorStr = partes[5].replace(",", ".");
+
         return new Movimentacao(
                 Integer.parseInt(partes[0]),
                 Integer.parseInt(partes[1]),
                 Integer.parseInt(partes[2]),
                 partes[3],
                 LocalDate.parse(partes[4], FORMATO_DATA),
-                Double.parseDouble(partes[5])
+                Double.parseDouble(valorStr)
         );
     }
 }

@@ -1,6 +1,5 @@
 package br.com.gynlog.app;
 
-import br.com.gynlog.controller.TipoDespesaController;
 import br.com.gynlog.util.BackupService;
 
 import javax.swing.*;

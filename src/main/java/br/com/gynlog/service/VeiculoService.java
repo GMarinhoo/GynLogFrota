@@ -1,51 +1,44 @@
 package br.com.gynlog.service;
 
-import br.com.gynlog.dao.VeiculoDao;
 import br.com.gynlog.model.Veiculo;
-
+import br.com.gynlog.repository.VeiculoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+@Service
 public class VeiculoService {
 
-    private final VeiculoDao dao = new VeiculoDao();
+    @Autowired
+    private VeiculoRepository repo;
 
-    // Salvar com validação
     public void salvar(Veiculo v) throws IOException {
-        validarVeiculo(v);
-        dao.salvar(v);
-    }
-
-    // Validações
-    private void validarVeiculo(Veiculo v) throws IOException {
-
-        if (v.getPlaca() == null || v.getPlaca().isBlank())
-            throw new IllegalArgumentException("Placa inválida.");
-
-        int anoAtual = java.time.Year.now().getValue();
-        if (v.getAnoFabricacao() < 1950 || v.getAnoFabricacao() > anoAtual)
-            throw new IllegalArgumentException("Ano de fabricação inválido.");
-
-        if (placaExiste(v.getPlaca()))
-            throw new IllegalArgumentException("Placa já cadastrada.");
-    }
-
-    public boolean placaExiste(String placa) throws IOException {
-        return dao.buscarTodos()
-                .stream()
-                .anyMatch(v -> v.getPlaca().equalsIgnoreCase(placa));
-    }
-
-    public List<Veiculo> listar() throws IOException {
-        return dao.buscarTodos();
+        // Validação básica
+        if (v.getPlaca() == null || v.getPlaca().trim().isEmpty()) {
+            throw new IllegalArgumentException("A placa é obrigatória!");
+        }
+        repo.salvar(v);
     }
 
     public void atualizar(Veiculo v) throws IOException {
-        validarVeiculo(v);
-        dao.atualizar(v);
+        repo.atualizar(v);
     }
 
+    // --- ESTE ERA O MÉTODO QUE FALTAVA ---
     public void excluir(int id) throws IOException {
-        dao.excluir(id);
+        repo.excluir(id);
+    }
+    // -------------------------------------
+
+    public List<Veiculo> listar() throws IOException {
+        return repo.buscarTodos();
+    }
+
+    public Veiculo buscarPorId(int id) throws IOException {
+        return listar().stream()
+                .filter(v -> v.getIdVeiculo() == id)
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -1,0 +1,2 @@
+1;admin;admin;Administrador;GERENTE
+2;func;123;Funcionario;FUNCIONARIO

@@ -45,6 +45,7 @@ build/
 .idea/usage.statistics.xml
 .idea/shelf/
 .idea/dictionaries/
+.idea/
 
 # Arquivos de sistema do Windows (Lixo que o windows cria)
 Thumbs.db

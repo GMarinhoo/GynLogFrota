@@ -17,7 +17,7 @@ public class TelaCadastroVeiculo extends JFrame {
     private DefaultTableModel modeloTabela;
     private final VeiculoService service;
 
-    // Cores Modernas
+    // Adição de Cores
     private static final Color COR_HEADER = new Color(52, 152, 219); // Azul Veículo
     private static final Color COR_BG = new Color(236, 240, 241);
     private static final Color COR_BTN_SALVAR = new Color(46, 204, 113);
@@ -41,7 +41,6 @@ public class TelaCadastroVeiculo extends JFrame {
     }
 
     private void criarComponentes() {
-        // --- HEADER ---
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(COR_HEADER);
         JLabel lblTitulo = new JLabel("🚗 Cadastro de Veículos");
@@ -50,7 +49,7 @@ public class TelaCadastroVeiculo extends JFrame {
         header.add(lblTitulo);
         add(header, BorderLayout.NORTH);
 
-        // --- FORMULÁRIO (Card Branco) ---
+        // Formulario
         JPanel painelCentral = new JPanel(new BorderLayout(15, 15));
         painelCentral.setBackground(COR_BG);
         painelCentral.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -62,7 +61,7 @@ public class TelaCadastroVeiculo extends JFrame {
                 new EmptyBorder(20, 20, 20, 20)
         ));
 
-        // Estilizando campos
+        // Estilizando Campos
         txtId = criarTextField(false);
         txtPlaca = criarTextField(true);
         txtMarca = criarTextField(true);
@@ -82,7 +81,7 @@ public class TelaCadastroVeiculo extends JFrame {
 
         painelCentral.add(form, BorderLayout.NORTH);
 
-        // --- TABELA ---
+        // Tabela
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Placa", "Marca", "Modelo", "Ano", "Status"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -105,7 +104,7 @@ public class TelaCadastroVeiculo extends JFrame {
 
         add(painelCentral, BorderLayout.CENTER);
 
-        // --- BOTÕES ---
+        // Botões
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
         botoes.setBackground(Color.WHITE);
         botoes.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(200, 200, 200)));
@@ -117,7 +116,7 @@ public class TelaCadastroVeiculo extends JFrame {
         add(botoes, BorderLayout.SOUTH);
     }
 
-    // --- Métodos Auxiliares de Estilo ---
+    // Métodos Auxiliares de Estilo
     private JTextField criarTextField(boolean editavel) {
         JTextField txt = new JTextField();
         txt.setEditable(editavel);
@@ -150,7 +149,6 @@ public class TelaCadastroVeiculo extends JFrame {
         return btn;
     }
 
-    // --- Lógica (Mantida) ---
     private void salvar() {
         try {
             Veiculo v = new Veiculo();

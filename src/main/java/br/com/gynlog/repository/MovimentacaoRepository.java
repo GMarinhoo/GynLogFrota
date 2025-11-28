@@ -34,7 +34,6 @@ public class MovimentacaoRepository {
         return buscarTodos().stream().filter(m -> m.getIdVeiculo() == idVeiculo).collect(Collectors.toList());
     }
 
-    // --- MÉTODOS QUE FALTAVAM ---
     public void atualizar(Movimentacao m) throws IOException {
         List<Movimentacao> lista = buscarTodos();
         boolean achou = false;

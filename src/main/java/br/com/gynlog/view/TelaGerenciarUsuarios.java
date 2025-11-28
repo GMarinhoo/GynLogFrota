@@ -11,18 +11,18 @@ import java.util.List;
 
 public class TelaGerenciarUsuarios extends JFrame {
 
-    // Componentes visuais
+    // Componentes Visuais
     private JTextField txtId, txtLogin, txtNome;
     private JPasswordField txtSenha; // Senha oculta
     private JComboBox<TipoUsuario> cbTipo;
     private JTable tabela;
     private DefaultTableModel modeloTabela;
 
-    // Dependências (Injeção via Construtor)
+    // Dependências
     private final UsuarioService service;
     private final Usuario usuarioLogado;
 
-    // Cores (Padrão do sistema)
+    // Cores
     private static final Color COR_PRIMARY = new Color(46, 204, 113); // Verde para gestão de pessoas
     private static final Color COR_BG = new Color(236, 240, 241);
 
@@ -32,20 +32,19 @@ public class TelaGerenciarUsuarios extends JFrame {
 
         configurarJanela();
         criarComponentes();
-        carregarDados(); // Carrega a lista ao abrir
+        carregarDados();
     }
 
     private void configurarJanela() {
         setTitle("Gerenciamento de Usuários");
         setSize(900, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Fecha só a janela, não o app
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
         getContentPane().setBackground(COR_BG);
     }
 
     private void criarComponentes() {
-        // --- HEADER ---
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
         header.setBackground(COR_PRIMARY);
         JLabel lblTitulo = new JLabel("👥 Gerenciar Usuários do Sistema");
@@ -54,7 +53,7 @@ public class TelaGerenciarUsuarios extends JFrame {
         header.add(lblTitulo);
         add(header, BorderLayout.NORTH);
 
-        // --- FORMULÁRIO ---
+        // Formulario
         JPanel painelForm = new JPanel(new GridLayout(3, 4, 10, 10));
         painelForm.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         painelForm.setBackground(Color.WHITE);
@@ -66,16 +65,15 @@ public class TelaGerenciarUsuarios extends JFrame {
         txtLogin = new JTextField();
         txtSenha = new JPasswordField();
         txtNome = new JTextField();
-        cbTipo = new JComboBox<>(TipoUsuario.values()); // Carrega Gerente/Funcionário
+        cbTipo = new JComboBox<>(TipoUsuario.values());
 
-        // Adicionando Labels e Campos
         painelForm.add(new JLabel("ID:")); painelForm.add(txtId);
         painelForm.add(new JLabel("Login:")); painelForm.add(txtLogin);
         painelForm.add(new JLabel("Senha:")); painelForm.add(txtSenha);
         painelForm.add(new JLabel("Nome Completo:")); painelForm.add(txtNome);
         painelForm.add(new JLabel("Tipo de Acesso:")); painelForm.add(cbTipo);
 
-        // --- TABELA ---
+        // Tabela
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Login", "Nome", "Tipo"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -83,20 +81,20 @@ public class TelaGerenciarUsuarios extends JFrame {
         tabela = new JTable(modeloTabela);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Evento de clique na tabela para editar
+        // Evento de Clique na tabela para editar
         tabela.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 preencherFormulario();
             }
         });
 
-        // Painel Central que une Form e Tabela
+        // Painel Central que Une Form e Tabela
         JPanel central = new JPanel(new BorderLayout(10, 10));
         central.add(painelForm, BorderLayout.NORTH);
         central.add(new JScrollPane(tabela), BorderLayout.CENTER);
         add(central, BorderLayout.CENTER);
 
-        // --- BOTÕES ---
+        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelBotoes.setBackground(COR_BG);
 
@@ -121,11 +119,9 @@ public class TelaGerenciarUsuarios extends JFrame {
         add(painelBotoes, BorderLayout.SOUTH);
     }
 
-    // --- LÓGICA DO CRUD ---
-
+    // Lógica do Crud
     private void salvar() {
         try {
-            // Validação Simples
             if(txtLogin.getText().trim().isEmpty() || new String(txtSenha.getPassword()).isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Login e Senha são obrigatórios!");
                 return;
@@ -139,9 +135,9 @@ public class TelaGerenciarUsuarios extends JFrame {
             u.setTipo((TipoUsuario) cbTipo.getSelectedItem());
 
             if (u.getId() == 0) {
-                service.salvar(u); // Novo
+                service.salvar(u);
             } else {
-                service.atualizar(u); // Edição
+                service.atualizar(u);
             }
 
             JOptionPane.showMessageDialog(this, "Usuário salvo com sucesso!");
@@ -162,7 +158,7 @@ public class TelaGerenciarUsuarios extends JFrame {
 
             int id = Integer.parseInt(txtId.getText());
 
-            // REGRA DE SEGURANÇA: Não pode se excluir
+            // Regra para Segurança
             if (id == usuarioLogado.getId()) {
                 JOptionPane.showMessageDialog(this, "Você não pode excluir seu próprio usuário logado!", "Ação Bloqueada", JOptionPane.WARNING_MESSAGE);
                 return;
@@ -203,7 +199,7 @@ public class TelaGerenciarUsuarios extends JFrame {
         if (row != -1) {
             int id = Integer.parseInt(tabela.getValueAt(row, 0).toString());
 
-            // Busca no service para pegar a senha (que não está na tabela visualmente)
+            // Busca no Service para Pegar a Senha
             try {
                 Usuario u = service.buscarPorId(id);
                 if (u != null) {

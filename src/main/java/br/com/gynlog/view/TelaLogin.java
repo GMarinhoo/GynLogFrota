@@ -12,7 +12,7 @@ public class TelaLogin extends JFrame {
     private JTextField txtUsuario;
     private JPasswordField txtSenha;
 
-    // O Contexto do Spring é a "caixa de ferramentas" que guarda os Services
+    // O Contexto do Spring quw guarda os Services
     private final ConfigurableApplicationContext context;
     private final UsuarioService usuarioService;
 
@@ -95,7 +95,7 @@ public class TelaLogin extends JFrame {
         if (usuario != null) {
             JOptionPane.showMessageDialog(this, "Bem-vindo, " + usuario.getNome() + "!");
             dispose();
-            new TelaPrincipalModerna(usuario, context).setVisible(true);
+            new TelaPrincipal(usuario, context).setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos!", "Erro", JOptionPane.ERROR_MESSAGE);
             txtSenha.setText("");

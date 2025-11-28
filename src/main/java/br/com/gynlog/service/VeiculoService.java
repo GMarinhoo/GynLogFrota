@@ -14,7 +14,6 @@ public class VeiculoService {
     private VeiculoRepository repo;
 
     public void salvar(Veiculo v) throws IOException {
-        // Validação básica
         if (v.getPlaca() == null || v.getPlaca().trim().isEmpty()) {
             throw new IllegalArgumentException("A placa é obrigatória!");
         }
@@ -25,11 +24,9 @@ public class VeiculoService {
         repo.atualizar(v);
     }
 
-    // --- ESTE ERA O MÉTODO QUE FALTAVA ---
     public void excluir(int id) throws IOException {
         repo.excluir(id);
     }
-    // -------------------------------------
 
     public List<Veiculo> listar() throws IOException {
         return repo.buscarTodos();

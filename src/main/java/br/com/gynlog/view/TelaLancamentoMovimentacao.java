@@ -45,7 +45,6 @@ public class TelaLancamentoMovimentacao extends JFrame {
     }
 
     private void criarComponentes() {
-        // --- HEADER ---
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(COR_HEADER);
         JLabel lblTitulo = new JLabel("💰 Nova Despesa");
@@ -54,7 +53,7 @@ public class TelaLancamentoMovimentacao extends JFrame {
         header.add(lblTitulo);
         add(header, BorderLayout.NORTH);
 
-        // --- FORMULÁRIO ---
+        // Formulario
         JPanel painelCentral = new JPanel(new BorderLayout());
         painelCentral.setBackground(COR_BG);
         painelCentral.setBorder(new EmptyBorder(20, 40, 20, 40));
@@ -77,7 +76,7 @@ public class TelaLancamentoMovimentacao extends JFrame {
         estilizarCombo(cbVeiculo);
         estilizarCombo(cbTipoDespesa);
 
-        // Adicionando na ordem
+        // Adicionando na Ordem
         adicionarLinha(form, "ID:", txtId);
         adicionarLinha(form, "Veículo:", cbVeiculo);
         adicionarLinha(form, "Tipo:", cbTipoDespesa);
@@ -88,7 +87,7 @@ public class TelaLancamentoMovimentacao extends JFrame {
         painelCentral.add(form, BorderLayout.CENTER);
         add(painelCentral, BorderLayout.CENTER);
 
-        // --- BOTÃO SALVAR ---
+        // Botão Salvar
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
         rodape.setBackground(Color.WHITE);
 
@@ -106,7 +105,6 @@ public class TelaLancamentoMovimentacao extends JFrame {
         add(rodape, BorderLayout.SOUTH);
     }
 
-    // --- Helpers Visuais ---
     private JTextField criarTextField(boolean editavel) {
         JTextField txt = new JTextField();
         txt.setEditable(editavel);
@@ -131,7 +129,7 @@ public class TelaLancamentoMovimentacao extends JFrame {
         p.add(c);
     }
 
-    // --- Lógica ---
+    // Lógica
     private void carregarCombos() {
         try {
             cbVeiculo.removeAllItems();

@@ -27,11 +27,9 @@ public class MovimentacaoService {
         repo.excluir(id);
     }
 
-    // --- ESSE ERA O MÉTODO QUE FALTAVA E CAUSOU OS ERROS ---
     public List<Movimentacao> listar() throws IOException {
         return repo.buscarTodos();
     }
-    // -------------------------------------------------------
 
     private void validar(Movimentacao m) {
         if (m.getValor() <= 0) throw new IllegalArgumentException("Valor inválido");

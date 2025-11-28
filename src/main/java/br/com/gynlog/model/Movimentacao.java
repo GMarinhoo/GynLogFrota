@@ -25,7 +25,6 @@ public class Movimentacao {
         this.valor = valor;
     }
 
-    // --- GETTERS (CRITICOS PARA OS RELATÓRIOS) ---
     public int getIdMovimentacao() { return idMovimentacao; }
     public void setIdMovimentacao(int idMovimentacao) { this.idMovimentacao = idMovimentacao; }
 

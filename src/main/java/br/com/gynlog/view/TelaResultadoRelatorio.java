@@ -17,6 +17,7 @@ public class TelaResultadoRelatorio extends JFrame {
 
     private static final Color COR_HEADER = new Color(230, 126, 34);
     private final List<?> dadosBrutos;
+    private final JTable table; // Agora usamos a tabela para exportar se precisar
     private final String tituloRelatorio;
 
     public TelaResultadoRelatorio(String titulo, String[] colunas, Object[][] dadosVisual, String resumoFinal, List<?> dadosBrutos) {
@@ -29,6 +30,7 @@ public class TelaResultadoRelatorio extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        // --- HEADER ---
         JPanel header = new JPanel(new FlowLayout(FlowLayout.CENTER));
         header.setBackground(COR_HEADER);
         header.setBorder(new EmptyBorder(15, 0, 15, 0));
@@ -39,13 +41,13 @@ public class TelaResultadoRelatorio extends JFrame {
         header.add(lblTitulo);
         add(header, BorderLayout.NORTH);
 
-        // Tabela
+        // --- TABELA ---
         DefaultTableModel model = new DefaultTableModel(dadosVisual, colunas) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         table.getTableHeader().setBackground(new Color(44, 62, 80));
@@ -58,6 +60,7 @@ public class TelaResultadoRelatorio extends JFrame {
         scroll.setBorder(new EmptyBorder(10, 10, 10, 10));
         add(scroll, BorderLayout.CENTER);
 
+        // --- RODAPÉ ---
         if (resumoFinal != null) {
             JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             footer.setBackground(new Color(236, 240, 241));
@@ -70,51 +73,59 @@ public class TelaResultadoRelatorio extends JFrame {
             add(footer, BorderLayout.SOUTH);
         }
 
-        // Exportação Automática
         exportarAutomaticamente();
     }
 
     private void exportarAutomaticamente() {
         try {
-            String nomeLimpo = tituloRelatorio.replace(" ", "_").replace("/", "-");
+            String nomeLimpo = tituloRelatorio.replace(" ", "_").replace("/", "-").replace(":", "");
             String nomeArquivo = "Relatorio_" + nomeLimpo + ".txt";
             File arquivo = new File(nomeArquivo);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
 
-                // Escreve as Colunas
-                if (!dadosBrutos.isEmpty()) {
-                    Object primeiroItem = dadosBrutos.get(0);
+                // 1. TENTA EXPORTAR PELO MÉTODO BRUTO (VEICULO/MOVIMENTACAO)
+                boolean exportouBruto = false;
 
-                    if (primeiroItem instanceof Movimentacao) {
-                        // Cabeçalho para Despesas
+                if (dadosBrutos != null && !dadosBrutos.isEmpty()) {
+                    Object itemTeste = dadosBrutos.get(0);
+
+                    if (itemTeste instanceof Movimentacao) {
                         writer.write("ID;ID_Veiculo;Tipo_Despesa;Descricao;Data;Valor");
                         writer.newLine();
-                    } else if (primeiroItem instanceof Veiculo) {
-                        // Cabeçalho para Veículos
-                        writer.write("ID;Placa;Marca;Modelo;Ano;Status");
+                        for (Object item : dadosBrutos) writer.write(((Movimentacao) item).toCsvLine() + "\n");
+                        exportouBruto = true;
+                    }
+                    else if (itemTeste instanceof Veiculo) {
+                        writer.write("ID;Placa;Marca;Modelo;Ano;Status;Tipo");
+                        writer.newLine();
+                        for (Object item : dadosBrutos) writer.write(((Veiculo) item).toCsvLine() + "\n");
+                        exportouBruto = true;
+                    }
+                }
+
+                // 2. SE NÃO EXPORTOU BRUTO (CASO DAS MATRIZES), EXPORTA A TABELA VISUAL
+                if (!exportouBruto) {
+                    // Escreve Cabeçalho da Tabela
+                    for (int i = 0; i < table.getColumnCount(); i++) {
+                        writer.write(table.getColumnName(i) + ";");
+                    }
+                    writer.newLine();
+
+                    // Escreve Linhas da Tabela
+                    for (int i = 0; i < table.getRowCount(); i++) {
+                        for (int j = 0; j < table.getColumnCount(); j++) {
+                            Object valor = table.getValueAt(i, j);
+                            // Remove o "R$ " para ficar CSV puro se for dinheiro
+                            String texto = (valor != null) ? valor.toString().replace("R$ ", "").replace(".", "").replace(",", ".") : "";
+                            writer.write(texto + ";");
+                        }
                         writer.newLine();
                     }
                 }
-
-                // Escreve os dados
-                for (Object item : dadosBrutos) {
-                    if (item instanceof Movimentacao) {
-                        writer.write(((Movimentacao) item).toCsvLine());
-                    } else if (item instanceof Veiculo) {
-                        writer.write(((Veiculo) item).toCsvLine());
-                    }
-                    writer.newLine();
-                }
             }
 
-            System.out.println("✅ [AUTO] Arquivo gerado com colunas: " + arquivo.getAbsolutePath());
-
-            // Abre o arquivo sozinho para conferir
-            /*if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(arquivo);
-            }
-             */
+            System.out.println("✅ [AUTO] Arquivo gerado: " + arquivo.getAbsolutePath());
 
         } catch (IOException e) {
             System.err.println("Erro ao exportar: " + e.getMessage());

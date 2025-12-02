@@ -2,6 +2,7 @@ package br.com.gynlog.view;
 
 import br.com.gynlog.model.Usuario;
 import br.com.gynlog.enums.TipoUsuario;
+import br.com.gynlog.service.MatematicaService;
 import br.com.gynlog.service.MovimentacaoService;
 import br.com.gynlog.service.VeiculoService;
 import br.com.gynlog.service.UsuarioService;
@@ -37,6 +38,7 @@ public class TelaPrincipal extends JFrame {
     }
 
     private void criarComponentes() {
+        // --- HEADER ---
         JPanel painelHeader = new JPanel(new BorderLayout());
         painelHeader.setBackground(COR_PRIMARY);
         painelHeader.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
@@ -67,12 +69,13 @@ public class TelaPrincipal extends JFrame {
 
         add(painelHeader, BorderLayout.NORTH);
 
-        // Menu
+        // --- MENU ---
         JPanel painelConteudo = new JPanel();
         painelConteudo.setLayout(new BoxLayout(painelConteudo, BoxLayout.Y_AXIS));
         painelConteudo.setBackground(COR_BG);
         painelConteudo.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
+        // Grid com 4 colunas (agora ficou limpo de novo, sem o botão roxo solto)
         JPanel painelCards = new JPanel(new GridLayout(1, 0, 30, 0));
         painelCards.setBackground(COR_BG);
 
@@ -81,6 +84,7 @@ public class TelaPrincipal extends JFrame {
 
         if(usuarioLogado.getTipo() == TipoUsuario.GERENTE) {
             painelCards.add(criarBotaoMenu("👥", "Usuários", new Color(46, 204, 113), e -> abrirGerenciarUsuarios()));
+            // Agora o botão de Matrizes SUMIU daqui e foi para dentro de Relatórios
             painelCards.add(criarBotaoMenu("📊", "Relatórios", new Color(230, 126, 34), e -> abrirRelatorios()));
         } else {
             JButton btnBloq = new JButton("<html><center><span style='font-size:40px'>🔒</span><br><br><span style='font-size:14px'>Acesso<br>Restrito</span></center></html>");
@@ -95,6 +99,7 @@ public class TelaPrincipal extends JFrame {
     }
 
     private JButton criarBotaoMenu(String icone, String texto, Color cor, ActionListener acao) {
+        // Layout do botão com BorderLayout para melhor controle
         JButton btn = new JButton();
         btn.setLayout(new BorderLayout());
         btn.setBackground(cor);
@@ -104,13 +109,16 @@ public class TelaPrincipal extends JFrame {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.addActionListener(acao);
 
+        // Painel interno para organizar ícone e texto - CENTRALIZADO
         JPanel conteudo = new JPanel();
         conteudo.setLayout(new BoxLayout(conteudo, BoxLayout.Y_AXIS));
         conteudo.setOpaque(false);
         conteudo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Adiciona espaço flexível antes (empurra conteúdo para o centro)
         conteudo.add(Box.createVerticalGlue());
 
+        // Label do ícone - BRANCO e GRANDE
         JLabel lblIcone = new JLabel(icone);
         lblIcone.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 50));
         lblIcone.setForeground(Color.WHITE); // GARANTE QUE SEJA BRANCO
@@ -119,12 +127,15 @@ public class TelaPrincipal extends JFrame {
         conteudo.add(lblIcone);
         conteudo.add(Box.createVerticalStrut(15));
 
+        // Label do texto - BRANCO e SEM QUEBRA
         JLabel lblTexto = new JLabel(texto);
         lblTexto.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTexto.setForeground(Color.WHITE);
+        lblTexto.setForeground(Color.WHITE); // GARANTE QUE SEJA BRANCO
         lblTexto.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         conteudo.add(lblTexto);
+
+        // Adiciona espaço flexível depois (empurra conteúdo para o centro)
         conteudo.add(Box.createVerticalGlue());
 
         btn.add(conteudo, BorderLayout.CENTER);
@@ -132,7 +143,7 @@ public class TelaPrincipal extends JFrame {
         return btn;
     }
 
-    // Metodos de Ação
+    // --- MÉTODOS DE AÇÃO ---
     private void abrirCadastroVeiculo() {
         VeiculoService service = context.getBean(VeiculoService.class);
         new TelaCadastroVeiculo(service).setVisible(true);
@@ -152,7 +163,17 @@ public class TelaPrincipal extends JFrame {
     private void abrirRelatorios() {
         if(usuarioLogado.getTipo() == TipoUsuario.FUNCIONARIO) return;
 
-        String[] opcoes = {"1. Despesas por Veículo", "2. Total Mensal da Frota", "3. Gastos com Combustível (Mês)", "4. Somatório IPVA (Ano)", "5. Veículos Inativos", "6. Multas por Veículo (Ano)"};
+        // ADICIONEI A OPÇÃO 7 AQUI
+        String[] opcoes = {
+                "1. Despesas por Veículo",
+                "2. Total Mensal da Frota",
+                "3. Gastos com Combustível (Mês)",
+                "4. Somatório IPVA (Ano)",
+                "5. Veículos Inativos",
+                "6. Multas por Veículo (Ano)",
+                "7. Análise Matricial de Custos" // Novo item
+        };
+
         String escolha = (String) JOptionPane.showInputDialog(this, "Selecione:", "Relatórios", JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
 
         if (escolha != null) {
@@ -163,11 +184,87 @@ public class TelaPrincipal extends JFrame {
                 case '4' -> relatorioIpva();
                 case '5' -> relatorioInativos();
                 case '6' -> relatorioMultas();
+                case '7' -> relatorioMatematico(); // Chama o novo fluxo
             }
         }
     }
 
-    // Relatorios
+    // --- LÓGICA DO RELATÓRIO MATEMÁTICO (NOVO FLUXO) ---
+    private void relatorioMatematico() {
+        try {
+            // 1. Calcula tudo antes
+            MatematicaService mathService = context.getBean(MatematicaService.class);
+            var resultadoCompleto = mathService.gerarRelatorioCompleto();
+
+            // 2. Pergunta qual matriz o usuário quer ver (Dropdown)
+            String[] matrizes = {
+                    "Matriz A - Qtd. Abastecimentos (Veículo x Mês)",
+                    "Matriz B - Custo Médio (Mês x Marca)",
+                    "Matriz C - Gasto Estimado (Veículo x Marca)"
+            };
+
+            String selecao = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Selecione a Matriz para visualizar:",
+                    "Fundamentos Matemáticos",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    matrizes,
+                    matrizes[2]); // Padrão: Matriz C (a principal)
+
+            if (selecao == null) return; // Cancelou
+
+            // 3. Seleciona os dados com base na escolha
+            MatematicaService.DadosMatriz dadosEscolhidos = null;
+            String totalGeral = null;
+
+            if (selecao.startsWith("Matriz A")) {
+                dadosEscolhidos = resultadoCompleto.matrizA;
+            } else if (selecao.startsWith("Matriz B")) {
+                dadosEscolhidos = resultadoCompleto.matrizB;
+            } else {
+                dadosEscolhidos = resultadoCompleto.matrizC;
+                totalGeral = resultadoCompleto.matrizC.resumo;
+            }
+
+            // 4. Formata os dados para exibir na tabela (converter double para String R$ ou Int)
+            // Precisamos converter Object[][] que veio do service para String[][] formatado
+            int linhas = dadosEscolhidos.dados.length;
+            int colunas = dadosEscolhidos.colunas.length;
+            Object[][] dadosTabela = new Object[linhas][colunas];
+
+            for (int i = 0; i < linhas; i++) {
+                dadosTabela[i][0] = dadosEscolhidos.dados[i][0]; // Nome da linha (ex: Placa ou Mês)
+                for (int j = 1; j < colunas; j++) {
+                    Object valor = dadosEscolhidos.dados[i][j];
+                    if (valor instanceof Double) {
+                        if (selecao.startsWith("Matriz A")) {
+                            dadosTabela[i][j] = String.valueOf(((Double) valor).intValue()); // Qtd sem decimal
+                        } else {
+                            dadosTabela[i][j] = String.format("R$ %.2f", (Double) valor); // Dinheiro
+                        }
+                    } else {
+                        dadosTabela[i][j] = valor;
+                    }
+                }
+            }
+
+            // 5. Abre a tela genérica (Reuso de código!)
+            new TelaResultadoRelatorio(
+                    dadosEscolhidos.titulo,
+                    dadosEscolhidos.colunas,
+                    dadosTabela,
+                    totalGeral,
+                    java.util.List.of() // Lista vazia (sem exportação bruta para matrizes)
+            ).setVisible(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Erro no cálculo: " + e.getMessage());
+        }
+    }
+
+    // --- OUTROS RELATÓRIOS (Mantidos) ---
 
     private void relatorioDespesasPorVeiculo() {
         try {
@@ -246,7 +343,6 @@ public class TelaPrincipal extends JFrame {
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Dados inválidos!"); }
     }
 
-    // Método Auxiliar Genérico para Relatórios de Movimentação
     private void exibirRelatorioSimples(String titulo, java.util.List<br.com.gynlog.model.Movimentacao> lista) {
         String[] colunas = {"Data", "Tipo", "Descrição", "Valor"};
         Object[][] dados = new Object[lista.size()][4];
@@ -262,7 +358,6 @@ public class TelaPrincipal extends JFrame {
         new TelaResultadoRelatorio(titulo, colunas, dados, String.format("Total: R$ %.2f", total), lista).setVisible(true);
     }
 
-    // Relatorio 5
     private void relatorioInativos() {
         try {
             var inativos = context.getBean(VeiculoService.class).listar().stream()
@@ -277,13 +372,12 @@ public class TelaPrincipal extends JFrame {
                 dados[i][2] = v.getModelo();
                 dados[i][3] = v.getMarca();
             }
-            // Passa a lista de Veículos
             new TelaResultadoRelatorio("Veiculos Inativos", colunas, dados, "Qtd: " + inativos.size(), inativos).setVisible(true);
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage()); }
     }
 
     private void sair() {
         dispose();
-        new TelaLogin(context).setVisible(true);
+        new br.com.gynlog.view.TelaLogin(context).setVisible(true);
     }
 }

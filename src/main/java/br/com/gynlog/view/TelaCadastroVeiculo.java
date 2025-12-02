@@ -1,5 +1,6 @@
 package br.com.gynlog.view;
 
+import br.com.gynlog.enums.TipoVeiculo; // Import Novo
 import br.com.gynlog.model.Veiculo;
 import br.com.gynlog.service.VeiculoService;
 
@@ -12,13 +13,14 @@ import java.util.List;
 public class TelaCadastroVeiculo extends JFrame {
 
     private JTextField txtId, txtPlaca, txtMarca, txtModelo, txtAno;
+    private JComboBox<TipoVeiculo> cbTipo; // O NOVO BOTÃO DE OPÇÕES
     private JCheckBox chkAtivo;
     private JTable tabela;
     private DefaultTableModel modeloTabela;
     private final VeiculoService service;
 
-    // Adição de Cores
-    private static final Color COR_HEADER = new Color(52, 152, 219); // Azul Veículo
+    // Cores Modernas
+    private static final Color COR_HEADER = new Color(52, 152, 219);
     private static final Color COR_BG = new Color(236, 240, 241);
     private static final Color COR_BTN_SALVAR = new Color(46, 204, 113);
     private static final Color COR_BTN_EXCLUIR = new Color(231, 76, 60);
@@ -33,7 +35,7 @@ public class TelaCadastroVeiculo extends JFrame {
 
     private void configurarJanela() {
         setTitle("Gerenciamento de Veículos");
-        setSize(1000, 650);
+        setSize(1000, 700); // Aumentei um pouco a altura
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -41,6 +43,7 @@ public class TelaCadastroVeiculo extends JFrame {
     }
 
     private void criarComponentes() {
+        // HEADER
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         header.setBackground(COR_HEADER);
         JLabel lblTitulo = new JLabel("🚗 Cadastro de Veículos");
@@ -49,46 +52,54 @@ public class TelaCadastroVeiculo extends JFrame {
         header.add(lblTitulo);
         add(header, BorderLayout.NORTH);
 
-        // Formulario
+        // FORMULÁRIO
         JPanel painelCentral = new JPanel(new BorderLayout(15, 15));
         painelCentral.setBackground(COR_BG);
         painelCentral.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel form = new JPanel(new GridLayout(3, 4, 15, 10));
+        // Ajustei o Grid para caber o novo campo (4 linhas)
+        JPanel form = new JPanel(new GridLayout(4, 4, 15, 10));
         form.setBackground(Color.WHITE);
         form.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
                 new EmptyBorder(20, 20, 20, 20)
         ));
 
-        // Estilizando Campos
         txtId = criarTextField(false);
         txtPlaca = criarTextField(true);
+        cbTipo = new JComboBox<>(TipoVeiculo.values()); // Popula com CARRO, MOTO...
+        cbTipo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cbTipo.setBackground(Color.WHITE);
+
         txtMarca = criarTextField(true);
         txtModelo = criarTextField(true);
         txtAno = criarTextField(true);
+
         chkAtivo = new JCheckBox("Veículo Ativo");
         chkAtivo.setBackground(Color.WHITE);
         chkAtivo.setSelected(true);
         chkAtivo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         adicionarCampo(form, "ID:", txtId);
+        adicionarCampo(form, "Tipo:", cbTipo); // Adicionado aqui
         adicionarCampo(form, "Placa:", txtPlaca);
         adicionarCampo(form, "Marca:", txtMarca);
         adicionarCampo(form, "Modelo:", txtModelo);
         adicionarCampo(form, "Ano:", txtAno);
-        form.add(chkAtivo); // Checkbox ocupa o espaço do label+campo
+
+        form.add(new JLabel("")); // Espaço vazio para alinhar
+        form.add(chkAtivo);
 
         painelCentral.add(form, BorderLayout.NORTH);
 
-        // Tabela
-        modeloTabela = new DefaultTableModel(new String[]{"ID", "Placa", "Marca", "Modelo", "Ano", "Status"}, 0) {
+        // TABELA (Adicionei a coluna Tipo)
+        modeloTabela = new DefaultTableModel(new String[]{"ID", "Tipo", "Placa", "Marca", "Modelo", "Ano", "Status"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabela = new JTable(modeloTabela);
         tabela.setRowHeight(25);
-        tabela.getTableHeader().setBackground(new Color(44, 62, 80)); // Cabeçalho escuro
+        tabela.getTableHeader().setBackground(new Color(44, 62, 80));
         tabela.getTableHeader().setForeground(Color.WHITE);
         tabela.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tabela.setSelectionBackground(new Color(52, 152, 219));
@@ -104,7 +115,7 @@ public class TelaCadastroVeiculo extends JFrame {
 
         add(painelCentral, BorderLayout.CENTER);
 
-        // Botões
+        // BOTÕES
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
         botoes.setBackground(Color.WHITE);
         botoes.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(200, 200, 200)));
@@ -116,7 +127,6 @@ public class TelaCadastroVeiculo extends JFrame {
         add(botoes, BorderLayout.SOUTH);
     }
 
-    // Métodos Auxiliares de Estilo
     private JTextField criarTextField(boolean editavel) {
         JTextField txt = new JTextField();
         txt.setEditable(editavel);
@@ -159,6 +169,9 @@ public class TelaCadastroVeiculo extends JFrame {
             v.setAnoFabricacao(Integer.parseInt(txtAno.getText()));
             v.setAtivo(chkAtivo.isSelected());
 
+            // PEGA O TIPO SELECIONADO
+            v.setTipo((TipoVeiculo) cbTipo.getSelectedItem());
+
             if(v.getIdVeiculo() == 0) service.salvar(v);
             else service.atualizar(v);
 
@@ -184,7 +197,15 @@ public class TelaCadastroVeiculo extends JFrame {
             modeloTabela.setRowCount(0);
             List<Veiculo> lista = service.listar();
             for (Veiculo v : lista) {
-                modeloTabela.addRow(new Object[]{v.getIdVeiculo(), v.getPlaca(), v.getMarca(), v.getModelo(), v.getAnoFabricacao(), v.isAtivo() ? "ATIVO" : "INATIVO"});
+                modeloTabela.addRow(new Object[]{
+                        v.getIdVeiculo(),
+                        v.getTipo(), // Mostra na tabela
+                        v.getPlaca(),
+                        v.getMarca(),
+                        v.getModelo(),
+                        v.getAnoFabricacao(),
+                        v.isAtivo() ? "ATIVO" : "INATIVO"
+                });
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -193,16 +214,24 @@ public class TelaCadastroVeiculo extends JFrame {
         int row = tabela.getSelectedRow();
         if(row != -1) {
             txtId.setText(tabela.getValueAt(row, 0).toString());
-            txtPlaca.setText(tabela.getValueAt(row, 1).toString());
-            txtMarca.setText(tabela.getValueAt(row, 2).toString());
-            txtModelo.setText(tabela.getValueAt(row, 3).toString());
-            txtAno.setText(tabela.getValueAt(row, 4).toString());
-            chkAtivo.setSelected(tabela.getValueAt(row, 5).toString().equals("ATIVO"));
+
+            // Seleciona o tipo no combo
+            Object tipoVal = tabela.getValueAt(row, 1);
+            if(tipoVal instanceof TipoVeiculo) {
+                cbTipo.setSelectedItem(tipoVal);
+            }
+
+            txtPlaca.setText(tabela.getValueAt(row, 2).toString());
+            txtMarca.setText(tabela.getValueAt(row, 3).toString());
+            txtModelo.setText(tabela.getValueAt(row, 4).toString());
+            txtAno.setText(tabela.getValueAt(row, 5).toString());
+            chkAtivo.setSelected(tabela.getValueAt(row, 6).toString().equals("ATIVO"));
         }
     }
 
     private void limparFormulario() {
         txtId.setText(""); txtPlaca.setText(""); txtMarca.setText(""); txtModelo.setText(""); txtAno.setText("");
+        cbTipo.setSelectedIndex(0);
         chkAtivo.setSelected(true);
     }
 }

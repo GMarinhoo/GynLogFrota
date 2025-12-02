@@ -95,12 +95,4 @@ Para o primeiro acesso (Admin):
 - `br.com.gynlog.enums`: Tipagens fortes (TipoVeiculo, TipoDespesaEnum).
 
 ---
-
-## 👨‍💻 Equipe de Desenvolvimento
-
-- **Infraestrutura & Arquitetura:** [Seu Nome]
-- **Lógica de Negócio & Backend:** [Nome do Parceiro]
-- **Frontend & Design:** [Nome do Parceiro]
-
----
 *Desenvolvido em Novembro/2025.*

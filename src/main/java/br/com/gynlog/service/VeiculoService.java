@@ -4,6 +4,7 @@ import br.com.gynlog.model.Veiculo;
 import br.com.gynlog.repository.VeiculoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.util.List;
 

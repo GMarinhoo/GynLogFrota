@@ -7,7 +7,6 @@ import br.com.gynlog.service.MovimentacaoService;
 import br.com.gynlog.service.VeiculoService;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -22,124 +21,51 @@ public class TelaLancamentoMovimentacao extends JFrame {
     private final VeiculoService veiculoService;
     private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    // Cores
-    private static final Color COR_HEADER = new Color(155, 89, 182); // Roxo Despesa
-    private static final Color COR_BG = new Color(236, 240, 241);
-    private static final Color COR_BTN_SALVAR = new Color(46, 204, 113);
-
     public TelaLancamentoMovimentacao(MovimentacaoService ms, VeiculoService vs) {
         this.movService = ms;
         this.veiculoService = vs;
-        configurarJanela();
-        criarComponentes();
-        carregarCombos();
-    }
-
-    private void configurarJanela() {
         setTitle("Lançamento de Despesas");
-        setSize(900, 550);
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(COR_BG);
-    }
 
-    private void criarComponentes() {
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
-        header.setBackground(COR_HEADER);
-        JLabel lblTitulo = new JLabel("💰 Nova Despesa");
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitulo.setForeground(Color.WHITE);
-        header.add(lblTitulo);
-        add(header, BorderLayout.NORTH);
+        JPanel form = new JPanel(new GridLayout(7, 2, 5, 5));
+        form.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Formulario
-        JPanel painelCentral = new JPanel(new BorderLayout());
-        painelCentral.setBackground(COR_BG);
-        painelCentral.setBorder(new EmptyBorder(20, 40, 20, 40));
-
-        JPanel form = new JPanel(new GridLayout(6, 2, 20, 15)); // Grid ajustado
-        form.setBackground(Color.WHITE);
-        form.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                new EmptyBorder(20, 20, 20, 20)
-        ));
-
-        txtId = criarTextField(false);
+        txtId = new JTextField(); txtId.setEditable(false);
         cbVeiculo = new JComboBox<>();
         cbTipoDespesa = new JComboBox<>(TipoDespesaEnum.values());
-        txtValor = criarTextField(true);
-        txtData = criarTextField(true);
-        txtData.setText(LocalDate.now().format(fmt));
-        txtDescricao = criarTextField(true);
+        txtValor = new JTextField();
+        txtData = new JTextField(LocalDate.now().format(fmt));
+        txtDescricao = new JTextField();
 
-        estilizarCombo(cbVeiculo);
-        estilizarCombo(cbTipoDespesa);
+        form.add(new JLabel("ID:")); form.add(txtId);
+        form.add(new JLabel("Veículo:")); form.add(cbVeiculo);
+        form.add(new JLabel("Tipo:")); form.add(cbTipoDespesa);
+        form.add(new JLabel("Valor (R$):")); form.add(txtValor);
+        form.add(new JLabel("Data (dd/MM/aaaa):")); form.add(txtData);
+        form.add(new JLabel("Descrição:")); form.add(txtDescricao);
 
-        // Adicionando na Ordem
-        adicionarLinha(form, "ID:", txtId);
-        adicionarLinha(form, "Veículo:", cbVeiculo);
-        adicionarLinha(form, "Tipo:", cbTipoDespesa);
-        adicionarLinha(form, "Valor (R$):", txtValor);
-        adicionarLinha(form, "Data (dd/mm/aaaa):", txtData);
-        adicionarLinha(form, "Descrição:", txtDescricao);
+        add(form, BorderLayout.CENTER);
 
-        painelCentral.add(form, BorderLayout.CENTER);
-        add(painelCentral, BorderLayout.CENTER);
-
-        // Botão Salvar
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
-        rodape.setBackground(Color.WHITE);
-
-        JButton btnSalvar = new JButton("Confirmar Lançamento");
-        btnSalvar.setBackground(COR_BTN_SALVAR);
-        btnSalvar.setForeground(Color.WHITE);
-        btnSalvar.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnSalvar.setFocusPainted(false);
-        btnSalvar.setBorderPainted(false);
-        btnSalvar.setPreferredSize(new Dimension(220, 45));
-        btnSalvar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton btnSalvar = new JButton("Salvar");
         btnSalvar.addActionListener(e -> salvar());
+        add(btnSalvar, BorderLayout.SOUTH);
 
-        rodape.add(btnSalvar);
-        add(rodape, BorderLayout.SOUTH);
+        carregarCombos();
     }
 
-    private JTextField criarTextField(boolean editavel) {
-        JTextField txt = new JTextField();
-        txt.setEditable(editavel);
-        txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txt.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(189, 195, 199)),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        if (!editavel) txt.setBackground(new Color(245, 245, 245));
-        return txt;
-    }
-
-    private void estilizarCombo(JComboBox box) {
-        box.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        box.setBackground(Color.WHITE);
-    }
-
-    private void adicionarLinha(JPanel p, String label, Component c) {
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lbl.setForeground(new Color(100, 100, 100));
-        p.add(lbl);
-        p.add(c);
-    }
-
-    // Lógica
     private void carregarCombos() {
         try {
             cbVeiculo.removeAllItems();
             List<Veiculo> veiculos = veiculoService.listar();
             for(Veiculo v : veiculos) {
-                // Removi o IF de ativo para permitir multas em inativos
+                // Sem filtro de ativo para permitir multas antigas
                 String status = v.isAtivo() ? "" : " (Inativo)";
                 cbVeiculo.addItem(v.getIdVeiculo() + " - " + v.getPlaca() + status);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {}
     }
 
     private void salvar() {
@@ -155,7 +81,7 @@ public class TelaLancamentoMovimentacao extends JFrame {
             m.setData(LocalDate.parse(txtData.getText(), fmt));
 
             movService.salvar(m);
-            JOptionPane.showMessageDialog(this, "Despesa lançada com sucesso!");
+            JOptionPane.showMessageDialog(this, "Salvo!");
             dispose();
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage()); }
     }

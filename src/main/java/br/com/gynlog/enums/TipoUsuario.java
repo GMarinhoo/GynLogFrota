@@ -4,7 +4,7 @@ public enum TipoUsuario {
     GERENTE("Gerente"),
     FUNCIONARIO("Funcionário");
 
-    private String descricao;
+    private final String descricao;
 
     TipoUsuario(String descricao) {
         this.descricao = descricao;
@@ -12,5 +12,10 @@ public enum TipoUsuario {
 
     public String getDescricao() {
         return descricao;
+    }
+
+    @Override
+    public String toString() {
+        return descricao; // Retorna o texto amigável para o ComboBox
     }
 }

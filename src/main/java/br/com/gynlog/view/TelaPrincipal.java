@@ -10,7 +10,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class TelaPrincipal extends JFrame {
 
@@ -105,8 +104,6 @@ public class TelaPrincipal extends JFrame {
             }
         }
     }
-
-    // --- MÉTODOS DE RELATÓRIO QUE FALTAVAM ---
 
     private void relatorioDespesasPorVeiculo() {
         try {

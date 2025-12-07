@@ -20,7 +20,7 @@ public class MatematicaService {
     @Autowired
     private VeiculoRepository veiculoRepo;
 
-    // Objeto para transportar os dados de UMA matriz
+    // Objeto para transportar os dados de uma matriz
     public static class DadosMatriz {
         public String titulo;
         public String[] colunas;
@@ -51,7 +51,6 @@ public class MatematicaService {
                 .filter(m -> m.getTipoDespesa() == TipoDespesaEnum.COMBUSTIVEL)
                 .collect(Collectors.toList());
 
-        // --- DEFINIÇÃO DE EIXOS ---
         // Linhas de A e C (Veículos)
         List<Veiculo> veiculosOrdenados = todosVeiculos.stream()
                 .sorted(Comparator.comparing(Veiculo::getPlaca))
@@ -70,8 +69,8 @@ public class MatematicaService {
                 .collect(Collectors.toList());
         int p = marcas.size();
 
-        // --- 1. MATRIZ A (Veículos x Meses) ---
         // Quantidade de abastecimentos
+        // MATRIZ A (Veículos x Meses)
         double[][] A = new double[m][n];
         Object[][] dadosA = new Object[m][n + 1]; // +1 para o nome da linha
         String[] colunasA = new String[n + 1];
@@ -87,23 +86,22 @@ public class MatematicaService {
                         .filter(mov -> mov.getIdVeiculo() == v.getIdVeiculo() && mov.getData().getMonthValue() == mes)
                         .count();
                 A[i][j] = qtd;
-                dadosA[i][j+1] = (int) qtd; // Exibe como inteiro
+                dadosA[i][j+1] = (int) qtd;
             }
         }
 
-        // --- 2. MATRIZ B (Meses x Marcas) ---
-        // Custo Médio
+        // MATRIZ B (Meses x Marcas)
         double[][] B = new double[n][p];
         Object[][] dadosB = new Object[n][p + 1];
         String[] colunasB = new String[p + 1];
         colunasB[0] = "Mês";
         for(int i=0; i<p; i++) colunasB[i+1] = marcas.get(i);
 
-        for (int i = 0; i < n; i++) { // Meses
+        for (int i = 0; i < n; i++) {
             int mes = i + 1;
             dadosB[i][0] = nomesMeses[i];
 
-            for (int j = 0; j < p; j++) { // Marcas
+            for (int j = 0; j < p; j++) {
                 String marca = marcas.get(j);
 
                 // Busca abastecimentos deste mês e marca
@@ -124,7 +122,7 @@ public class MatematicaService {
             }
         }
 
-        // --- 3. MATRIZ C (Veículos x Marcas) ---
+        // MATRIZ C (Veículos x Marcas)
         // Multiplicação A x B
         double[][] C = new double[m][p];
         Object[][] dadosC = new Object[m][p + 1];
@@ -134,10 +132,10 @@ public class MatematicaService {
 
         double totalGeral = 0;
 
-        for (int i = 0; i < m; i++) { // Linha de A
+        for (int i = 0; i < m; i++) {
             dadosC[i][0] = veiculosOrdenados.get(i).getPlaca();
-            for (int j = 0; j < p; j++) { // Coluna de B
-                for (int k = 0; k < n; k++) { // Somatório
+            for (int j = 0; j < p; j++) {
+                for (int k = 0; k < n; k++) {
                     C[i][j] += A[i][k] * B[k][j];
                 }
                 totalGeral += C[i][j];

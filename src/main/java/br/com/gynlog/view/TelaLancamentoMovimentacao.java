@@ -61,7 +61,6 @@ public class TelaLancamentoMovimentacao extends JFrame {
             cbVeiculo.removeAllItems();
             List<Veiculo> veiculos = veiculoService.listar();
             for(Veiculo v : veiculos) {
-                // Sem filtro de ativo para permitir multas antigas
                 String status = v.isAtivo() ? "" : " (Inativo)";
                 cbVeiculo.addItem(v.getIdVeiculo() + " - " + v.getPlaca() + status);
             }

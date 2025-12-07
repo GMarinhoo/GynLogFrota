@@ -47,17 +47,16 @@ public class TelaCadastroVeiculo extends JFrame {
 
         add(painelForm, BorderLayout.NORTH);
 
-        // Tabela Simples
+        // Tabela
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Tipo", "Placa", "Marca", "Modelo", "Ano", "Status"}, 0);
         tabela = new JTable(modeloTabela);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
-        // Evento clique
         tabela.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) { preencherFormulario(); }
         });
 
-        // Botões Simples
+        // Botões
         JPanel painelBotoes = new JPanel();
         JButton btnSalvar = new JButton("Salvar");
         JButton btnExcluir = new JButton("Excluir");
@@ -74,10 +73,6 @@ public class TelaCadastroVeiculo extends JFrame {
 
         carregarDados();
     }
-
-    // --- MÉTODOS DE LÓGICA (MANTIDOS IGUAIS) ---
-    // Copie os métodos salvar(), excluir(), carregarDados(), preencherFormulario(), limparFormulario()
-    // do código anterior. A lógica não muda nada, só o visual acima.
 
     private void salvar() {
         try {

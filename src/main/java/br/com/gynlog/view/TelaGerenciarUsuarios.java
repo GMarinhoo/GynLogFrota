@@ -7,7 +7,6 @@ import br.com.gynlog.service.UsuarioService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 
 public class TelaGerenciarUsuarios extends JFrame {
 
@@ -107,8 +106,8 @@ public class TelaGerenciarUsuarios extends JFrame {
             for (br.com.gynlog.model.Usuario u : lista) {
                 modeloTabela.addRow(new Object[]{u.getId(), u.getLogin(), u.getNome(), u.getTipo()});
             }
-        } catch (Exception e) { // <--- GARANTA QUE ESTÁ 'Exception e'
-            e.printStackTrace(); // <--- GARANTA QUE ESTÁ USANDO 'e'
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

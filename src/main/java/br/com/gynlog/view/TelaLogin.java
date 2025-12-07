@@ -27,7 +27,7 @@ public class TelaLogin extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        setLayout(null); // Layout nulo é bem "iniciante", mas funciona
+        setLayout(null);
     }
 
     private void criarComponentes() {

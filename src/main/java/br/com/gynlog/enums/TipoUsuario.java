@@ -16,6 +16,6 @@ public enum TipoUsuario {
 
     @Override
     public String toString() {
-        return descricao; // Retorna o texto amigável para o ComboBox
+        return descricao;
     }
 }

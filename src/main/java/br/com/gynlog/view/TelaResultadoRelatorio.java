@@ -45,7 +45,6 @@ public class TelaResultadoRelatorio extends JFrame {
         exportarAutomaticamente();
     }
 
-    // Lógica de exportação
     private void exportarAutomaticamente() {
         try {
             String nomeLimpo = tituloRelatorio.replace(" ", "_").replace("/", "-").replace(":", "");

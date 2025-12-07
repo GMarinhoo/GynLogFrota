@@ -20,7 +20,6 @@ public class MatematicaService {
     @Autowired
     private VeiculoRepository veiculoRepo;
 
-    // Objeto para transportar os dados de uma matriz
     public static class DadosMatriz {
         public String titulo;
         public String[] colunas;
@@ -35,7 +34,6 @@ public class MatematicaService {
         }
     }
 
-    // Objeto que agrupa as 3 matrizes
     public static class RelatorioMatematicoDTO {
         public DadosMatriz matrizA;
         public DadosMatriz matrizB;
@@ -46,33 +44,26 @@ public class MatematicaService {
         List<Movimentacao> todasMovs = movRepo.buscarTodos();
         List<Veiculo> todosVeiculos = veiculoRepo.buscarTodos();
 
-        // Filtra abastecimentos
         List<Movimentacao> abastecimentos = todasMovs.stream()
                 .filter(m -> m.getTipoDespesa() == TipoDespesaEnum.COMBUSTIVEL)
                 .collect(Collectors.toList());
 
-        // Linhas de A e C (Veículos)
         List<Veiculo> veiculosOrdenados = todosVeiculos.stream()
                 .sorted(Comparator.comparing(Veiculo::getPlaca))
                 .collect(Collectors.toList());
         int m = veiculosOrdenados.size();
 
-        // Colunas de A e Linhas de B (Meses)
         int n = 12;
         String[] nomesMeses = {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
 
-        // Colunas de B e C (Marcas)
         List<String> marcas = todosVeiculos.stream()
                 .map(Veiculo::getMarca)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
         int p = marcas.size();
-
-        // Quantidade de abastecimentos
-        // MATRIZ A (Veículos x Meses)
         double[][] A = new double[m][n];
-        Object[][] dadosA = new Object[m][n + 1]; // +1 para o nome da linha
+        Object[][] dadosA = new Object[m][n + 1];
         String[] colunasA = new String[n + 1];
         colunasA[0] = "Veículo";
         for(int i=0; i<n; i++) colunasA[i+1] = nomesMeses[i];
@@ -90,7 +81,6 @@ public class MatematicaService {
             }
         }
 
-        // MATRIZ B (Meses x Marcas)
         double[][] B = new double[n][p];
         Object[][] dadosB = new Object[n][p + 1];
         String[] colunasB = new String[p + 1];
@@ -103,12 +93,9 @@ public class MatematicaService {
 
             for (int j = 0; j < p; j++) {
                 String marca = marcas.get(j);
-
-                // Busca abastecimentos deste mês e marca
                 List<Movimentacao> movsMarca = abastecimentos.stream()
                         .filter(mov -> mov.getData().getMonthValue() == mes)
                         .filter(mov -> {
-                            // Busca veículo para ver a marca
                             Veiculo v = todosVeiculos.stream().filter(vec -> vec.getIdVeiculo() == mov.getIdVeiculo()).findFirst().orElse(null);
                             return v != null && v.getMarca().equalsIgnoreCase(marca);
                         })
@@ -122,8 +109,6 @@ public class MatematicaService {
             }
         }
 
-        // MATRIZ C (Veículos x Marcas)
-        // Multiplicação A x B
         double[][] C = new double[m][p];
         Object[][] dadosC = new Object[m][p + 1];
         String[] colunasC = new String[p + 1];
@@ -143,7 +128,6 @@ public class MatematicaService {
             }
         }
 
-        // Monta o retorno
         RelatorioMatematicoDTO dto = new RelatorioMatematicoDTO();
         dto.matrizA = new DadosMatriz("Matriz A: Qtd Abastecimentos (Veículo x Mês)", colunasA, dadosA, null);
         dto.matrizB = new DadosMatriz("Matriz B: Custo Médio (Mês x Marca)", colunasB, dadosB, null);

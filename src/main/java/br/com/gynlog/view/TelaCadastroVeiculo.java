@@ -26,7 +26,6 @@ public class TelaCadastroVeiculo extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Painel Superior (Formulário)
         JPanel painelForm = new JPanel(new GridLayout(4, 4, 5, 5));
 
         txtId = new JTextField(); txtId.setEditable(false);
@@ -47,7 +46,6 @@ public class TelaCadastroVeiculo extends JFrame {
 
         add(painelForm, BorderLayout.NORTH);
 
-        // Tabela
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Tipo", "Placa", "Marca", "Modelo", "Ano", "Status"}, 0);
         tabela = new JTable(modeloTabela);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
@@ -56,7 +54,6 @@ public class TelaCadastroVeiculo extends JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) { preencherFormulario(); }
         });
 
-        // Botões
         JPanel painelBotoes = new JPanel();
         JButton btnSalvar = new JButton("Salvar");
         JButton btnExcluir = new JButton("Excluir");

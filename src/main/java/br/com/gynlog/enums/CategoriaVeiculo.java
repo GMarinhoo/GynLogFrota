@@ -7,7 +7,7 @@ public enum CategoriaVeiculo {
     VAN("Van"),
     CAMINHONETE("Caminhonete"),
     ONIBUS("Ônibus"),
-    UTILITARIO("Utilitário");
+    OUTROS("Outros");
 
     private final String descricao;
 

@@ -1,147 +1,108 @@
 package br.com.gynlog.repository;
 
 import br.com.gynlog.model.Abastecimento;
+import br.com.gynlog.model.Veiculo;
 import org.springframework.stereotype.Repository;
-import java.sql.*;
+
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class AbastecimentoRepository {
 
-    public void salvar(Abastecimento a) throws SQLException {
-        String sql = "INSERT INTO abastecimento (id_veiculo, data, odometro, qtd_litros, valor_total) VALUES (?,?,?,?,?)";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, a.getIdVeiculo());
-            ps.setDate(2, Date.valueOf(a.getData()));
-            ps.setDouble(3, a.getOdometro());
-            ps.setDouble(4, a.getQtdLitros());
-            ps.setDouble(5, a.getValorTotal());
-            ps.executeUpdate();
+    private static final String ARQUIVO = "abastecimentos.txt";
 
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) a.setIdAbastecimento(rs.getInt(1));
-            }
-        }
+    public void salvar(Abastecimento a) throws Exception {
+        List<Abastecimento> lista = buscarTodos();
+        int maxId = lista.stream().mapToInt(Abastecimento::getIdAbastecimento).max().orElse(0);
+        a.setIdAbastecimento(maxId + 1);
+        lista.add(a);
+        gravarTodos(lista);
     }
 
-    public List<Abastecimento> buscarTodos() throws SQLException {
-        String sql = "SELECT * FROM abastecimento ORDER BY data DESC";
+    public List<Abastecimento> buscarTodos() throws Exception {
         List<Abastecimento> lista = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) lista.add(mapear(rs));
+        for (String linha : ArquivoUtil.lerLinhas(ARQUIVO)) {
+            String[] dados = linha.split(";");
+            if (dados.length == 6) {
+                lista.add(new Abastecimento(
+                        Integer.parseInt(dados[0]), Integer.parseInt(dados[1]),
+                        LocalDate.parse(dados[2]), Double.parseDouble(dados[3]),
+                        Double.parseDouble(dados[4]), Double.parseDouble(dados[5])
+                ));
+            }
         }
+        lista.sort((a1, a2) -> a2.getData().compareTo(a1.getData()));
         return lista;
     }
 
-    public Abastecimento buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM abastecimento WHERE id_abastecimento = ?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapear(rs);
-            }
-        }
-        return null;
+    public Abastecimento buscarPorId(int id) throws Exception {
+        return buscarTodos().stream().filter(a -> a.getIdAbastecimento() == id).findFirst().orElse(null);
     }
 
-    public List<Abastecimento> buscarPorVeiculo(int idVeiculo) throws SQLException {
-        String sql = "SELECT * FROM abastecimento WHERE id_veiculo = ? ORDER BY data ASC, odometro ASC";
-        List<Abastecimento> lista = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, idVeiculo);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(mapear(rs));
-            }
-        }
-        return lista;
+    public List<Abastecimento> buscarPorVeiculo(int idVeiculo) throws Exception {
+        return buscarTodos().stream()
+                .filter(a -> a.getIdVeiculo() == idVeiculo)
+                .sorted(Comparator.comparing(Abastecimento::getData).thenComparing(Abastecimento::getOdometro))
+                .collect(Collectors.toList());
     }
 
-    public Abastecimento buscarAnterior(int idVeiculo, double odometroAtual) throws SQLException {
-        String sql = "SELECT * FROM abastecimento " +
-                     "WHERE id_veiculo = ? AND odometro < ? " +
-                     "ORDER BY odometro DESC LIMIT 1";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, idVeiculo);
-            ps.setDouble(2, odometroAtual);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapear(rs);
-            }
-        }
-        return null;
+    public Abastecimento buscarAnterior(int idVeiculo, double odometroAtual) throws Exception {
+        return buscarTodos().stream()
+                .filter(a -> a.getIdVeiculo() == idVeiculo && a.getOdometro() < odometroAtual)
+                .max(Comparator.comparing(Abastecimento::getOdometro))
+                .orElse(null);
     }
 
-    public List<Object[]> buscarConsumoMedioPorVeiculo() throws SQLException {
-        String sql = "SELECT " +
-                     "  a.id_veiculo, " +
-                     "  v.modelo, " +
-                     "  v.placa, " +
-                     "  AVG((a.odometro - LAG(a.odometro) OVER (PARTITION BY a.id_veiculo ORDER BY a.odometro)) / a.qtd_litros) AS media_km_litro, " +
-                     "  MAX(a.odometro) - MIN(a.odometro) AS total_km, " +
-                     "  SUM(a.qtd_litros) AS total_litros " +
-                     "FROM abastecimento a " +
-                     "JOIN veiculo v ON a.id_veiculo = v.id_veiculo " +
-                     "GROUP BY a.id_veiculo, v.modelo, v.placa " +
-                     "HAVING COUNT(a.id_abastecimento) > 1 " +
-                     "ORDER BY media_km_litro DESC";
+    public List<Object[]> buscarConsumoMedioPorVeiculo() throws Exception {
+        VeiculoRepository vRepo = new VeiculoRepository();
+        List<Veiculo> veiculos = vRepo.buscarTodos();
+        Map<Integer, List<Abastecimento>> agrupado = buscarTodos().stream()
+                .collect(Collectors.groupingBy(Abastecimento::getIdVeiculo));
 
         List<Object[]> resultado = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                resultado.add(new Object[]{
-                        rs.getInt("id_veiculo"),
-                        rs.getString("modelo"),
-                        rs.getString("placa"),
-                        rs.getDouble("media_km_litro"),
-                        rs.getDouble("total_km"),
-                        rs.getDouble("total_litros")
-                });
+        for (Map.Entry<Integer, List<Abastecimento>> entry : agrupado.entrySet()) {
+            List<Abastecimento> lista = entry.getValue();
+            if (lista.size() <= 1) continue;
+            lista.sort(Comparator.comparing(Abastecimento::getOdometro));
+
+            double totalKm = lista.get(lista.size() - 1).getOdometro() - lista.get(0).getOdometro();
+            double totalLitros = lista.stream().mapToDouble(Abastecimento::getQtdLitros).sum();
+            double media = totalLitros > 0 ? totalKm / totalLitros : 0;
+
+            Veiculo v = veiculos.stream().filter(ve -> ve.getIdVeiculo() == entry.getKey()).findFirst().orElse(null);
+            if (v != null) {
+                resultado.add(new Object[]{v.getIdVeiculo(), v.getModelo(), v.getPlaca(), media, totalKm, totalLitros});
             }
         }
+        resultado.sort((a, b) -> Double.compare((Double) b[3], (Double) a[3]));
         return resultado;
     }
 
-    public void atualizar(Abastecimento a) throws SQLException {
-        String sql = "UPDATE abastecimento SET id_veiculo=?, data=?, odometro=?, qtd_litros=?, valor_total=? WHERE id_abastecimento=?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, a.getIdVeiculo());
-            ps.setDate(2, Date.valueOf(a.getData()));
-            ps.setDouble(3, a.getOdometro());
-            ps.setDouble(4, a.getQtdLitros());
-            ps.setDouble(5, a.getValorTotal());
-            ps.setInt(6, a.getIdAbastecimento());
-            ps.executeUpdate();
+    public void atualizar(Abastecimento a) throws Exception {
+        List<Abastecimento> lista = buscarTodos();
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getIdAbastecimento() == a.getIdAbastecimento()) {
+                lista.set(i, a);
+                break;
+            }
         }
+        gravarTodos(lista);
     }
 
-    public void excluir(int id) throws SQLException {
-        String sql = "DELETE FROM abastecimento WHERE id_abastecimento = ?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        }
+    public void excluir(int id) throws Exception {
+        List<Abastecimento> lista = buscarTodos();
+        lista.removeIf(a -> a.getIdAbastecimento() == id);
+        gravarTodos(lista);
     }
 
-    private Abastecimento mapear(ResultSet rs) throws SQLException {
-        LocalDate data = rs.getDate("data").toLocalDate();
-        return new Abastecimento(
-                rs.getInt("id_abastecimento"),
-                rs.getInt("id_veiculo"),
-                data,
-                rs.getDouble("odometro"),
-                rs.getDouble("qtd_litros"),
-                rs.getDouble("valor_total")
-        );
+    private void gravarTodos(List<Abastecimento> lista) throws Exception {
+        List<String> linhas = lista.stream().map(a -> String.join(";",
+                String.valueOf(a.getIdAbastecimento()), String.valueOf(a.getIdVeiculo()),
+                a.getData().toString(), String.valueOf(a.getOdometro()),
+                String.valueOf(a.getQtdLitros()), String.valueOf(a.getValorTotal())
+        )).collect(Collectors.toList());
+        ArquivoUtil.escreverLinhas(ARQUIVO, linhas);
     }
 }

@@ -15,25 +15,25 @@ public class TipoDespesaService {
     @Autowired
     private TipoDespesaRepository repo;
 
-    public List<TipoDespesa> listar() throws SQLException {
+    public List<TipoDespesa> listar() throws Exception {
         return repo.buscarTodos();
     }
 
-    public TipoDespesa buscarPorId(int id) throws SQLException {
+    public TipoDespesa buscarPorId(int id) throws Exception {
         return repo.buscarPorId(id);
     }
 
-    public void salvar(TipoDespesa t) throws SQLException {
+    public void salvar(TipoDespesa t) throws Exception {
         validar(t);
         repo.salvar(t);
     }
 
-    public void atualizar(TipoDespesa t) throws SQLException {
+    public void atualizar(TipoDespesa t) throws Exception {
         validar(t);
         repo.atualizar(t);
     }
 
-    public void excluir(int id) throws SQLException {
+    public void excluir(int id) throws Exception {
         if (id <= ID_MAXIMO_PROTEGIDO)
             throw new IllegalArgumentException("Os tipos padrão do sistema não podem ser excluídos.");
         repo.excluir(id);

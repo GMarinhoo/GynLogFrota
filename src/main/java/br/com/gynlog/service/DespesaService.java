@@ -4,6 +4,7 @@ import br.com.gynlog.model.Despesa;
 import br.com.gynlog.repository.DespesaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,66 +14,93 @@ public class DespesaService {
     @Autowired
     private DespesaRepository repo;
 
-    public void salvar(Despesa d) throws SQLException {
+    public void salvar(Despesa d) throws Exception {
         validar(d);
         repo.salvar(d);
     }
 
-    public void atualizar(Despesa d) throws SQLException {
+    public void atualizar(Despesa d) throws Exception {
         if (d.isGeradaPorAbastecimento())
             throw new IllegalArgumentException("Esta despesa foi gerada automaticamente por um abastecimento e não pode ser editada manualmente.");
         validar(d);
         repo.atualizar(d);
     }
 
-    public void excluir(int id) throws SQLException {
+    public void excluir(int id) throws Exception {
         Despesa existente = repo.buscarPorId(id);
         if (existente != null && existente.isGeradaPorAbastecimento())
             throw new IllegalArgumentException("Esta despesa foi gerada automaticamente por um abastecimento. Exclua o abastecimento correspondente.");
         repo.excluir(id);
     }
 
-    public List<Despesa> listar() throws SQLException {
+    public List<Despesa> listar() throws Exception {
         return repo.buscarTodos();
     }
 
-    public Despesa buscarPorId(int id) throws SQLException {
+    public Despesa buscarPorId(int id) throws Exception {
         return repo.buscarPorId(id);
     }
 
-    public List<Despesa> listarPorVeiculo(int idVeiculo) throws SQLException {
-        return repo.buscarPorVeiculo(idVeiculo);
+    public List<Despesa> listarPorVeiculo(int idVeiculo) throws Exception {
+        List<Despesa> lista = repo.buscarPorVeiculo(idVeiculo);
+        ordenarPorValor(lista);
+        return lista;
     }
 
-    public List<Despesa> listarPorMes(int mes, int ano) throws SQLException {
+    public List<Despesa> listarPorMes(int mes, int ano) throws Exception {
         validarMesAno(mes, ano);
         return repo.buscarPorMes(mes, ano);
     }
 
-    public List<Despesa> listarCombustivelPorMes(int mes, int ano) throws SQLException {
+    public List<Despesa> listarCombustivelPorMes(int mes, int ano) throws Exception {
         validarMesAno(mes, ano);
         return repo.buscarCombustivelPorMes(mes, ano);
     }
 
-    public List<Despesa> listarIpvaPorAno(int ano) throws SQLException {
+    public List<Despesa> listarIpvaPorAno(int ano) throws Exception {
         validarAno(ano);
         return repo.buscarIpvaPorAno(ano);
     }
 
-    public List<Despesa> listarMultasPorVeiculoAno(int idVeiculo, int ano) throws SQLException {
+    public double somarIpvaRecursivo(List<Despesa> lista, int indice) {
+        if (indice >= lista.size()) return 0.0;
+
+        return lista.get(indice).getValor() + somarIpvaRecursivo(lista, indice + 1);
+    }
+
+    public List<Despesa> listarMultasPorVeiculoAno(int idVeiculo, int ano) throws Exception {
         validarAno(ano);
         return repo.buscarMultasPorVeiculoAno(idVeiculo, ano);
     }
 
-    public List<Object[]> listarMediaGastoPorCategoria() throws SQLException {
+    public List<Object[]> listarMediaGastoPorCategoria() throws Exception {
         return repo.buscarMediaGastoPorCategoria();
     }
 
-    public List<Object[]> listarMediaIpvaPorAno(int ano) throws SQLException {
+    public List<Object[]> listarMediaIpvaPorAno(int ano) throws Exception {
         validarAno(ano);
         return repo.buscarMediaIpvaPorAno(ano);
     }
-    
+
+    private void ordenarPorValor(List<Despesa> lista) {
+        int n = lista.size();
+        boolean houveTroca;
+
+        for (int i = 0; i < n - 1; i++) {
+            houveTroca = false;
+
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (lista.get(j).getValor() > lista.get(j + 1).getValor()) {
+                    Despesa temp = lista.get(j);
+                    lista.set(j, lista.get(j + 1));
+                    lista.set(j + 1, temp);
+                    houveTroca = true;
+                }
+            }
+            if (!houveTroca) break;
+        }
+    }
+
     private void validar(Despesa d) {
         if (d.getTipoDespesa() == null)
             throw new IllegalArgumentException("O tipo de despesa é obrigatório.");

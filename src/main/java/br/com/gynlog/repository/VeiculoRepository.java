@@ -3,112 +3,73 @@ package br.com.gynlog.repository;
 import br.com.gynlog.enums.CategoriaVeiculo;
 import br.com.gynlog.model.Veiculo;
 import org.springframework.stereotype.Repository;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class VeiculoRepository {
 
-    public void salvar(Veiculo v) throws SQLException {
-        String sql = "INSERT INTO veiculo (placa, categoria, marca, modelo, ano_fab, status) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    private static final String ARQUIVO = "veiculos.txt";
 
-            ps.setString(1, v.getPlaca().toUpperCase().trim());
-            ps.setString(2, v.getCategoria().name());
-            ps.setString(3, v.getMarca().trim());
-            ps.setString(4, v.getModelo().trim());
-            ps.setInt(5, v.getAnoFabricacao());
-            ps.setBoolean(6, v.isAtivo());
-            ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) v.setIdVeiculo(rs.getInt(1));
-            }
-        }
+    public void salvar(Veiculo v) throws Exception {
+        List<Veiculo> lista = buscarTodos();
+        int maxId = lista.stream().mapToInt(Veiculo::getIdVeiculo).max().orElse(0);
+        v.setIdVeiculo(maxId + 1);
+        lista.add(v);
+        gravarTodos(lista);
     }
 
-    public List<Veiculo> buscarTodos() throws SQLException {
-        String sql = "SELECT * FROM veiculo ORDER BY modelo";
+    public List<Veiculo> buscarTodos() throws Exception {
         List<Veiculo> lista = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) lista.add(mapear(rs));
-        }
-        return lista;
-    }
-
-    public Veiculo buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM veiculo WHERE id_veiculo = ?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapear(rs);
-            }
-        }
-        return null;
-    }
-
-    public List<Veiculo> buscarInativos() throws SQLException {
-        String sql = "SELECT * FROM veiculo WHERE status = 0 ORDER BY modelo";
-        List<Veiculo> lista = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) lista.add(mapear(rs));
-        }
-        return lista;
-    }
-
-    public List<Veiculo> buscarPorCategoria(CategoriaVeiculo categoria) throws SQLException {
-        String sql = "SELECT * FROM veiculo WHERE categoria = ? ORDER BY modelo";
-        List<Veiculo> lista = new ArrayList<>();
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, categoria.name());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(mapear(rs));
+        for (String linha : ArquivoUtil.lerLinhas(ARQUIVO)) {
+            String[] dados = linha.split(";");
+            if (dados.length == 7) {
+                lista.add(new Veiculo(
+                        Integer.parseInt(dados[0]), dados[1],
+                        CategoriaVeiculo.valueOf(dados[2]), dados[3], dados[4],
+                        Integer.parseInt(dados[5]), Boolean.parseBoolean(dados[6])
+                ));
             }
         }
         return lista;
     }
 
-    public void atualizar(Veiculo v) throws SQLException {
-        String sql = "UPDATE veiculo SET placa=?, categoria=?, marca=?, modelo=?, ano_fab=?, status=? WHERE id_veiculo=?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, v.getPlaca().toUpperCase().trim());
-            ps.setString(2, v.getCategoria().name());
-            ps.setString(3, v.getMarca().trim());
-            ps.setString(4, v.getModelo().trim());
-            ps.setInt(5, v.getAnoFabricacao());
-            ps.setBoolean(6, v.isAtivo());
-            ps.setInt(7, v.getIdVeiculo());
-            ps.executeUpdate();
-        }
+    public Veiculo buscarPorId(int id) throws Exception {
+        return buscarTodos().stream().filter(v -> v.getIdVeiculo() == id).findFirst().orElse(null);
     }
 
-    public void excluir(int id) throws SQLException {
-        String sql = "DELETE FROM veiculo WHERE id_veiculo = ?";
-        try (Connection con = ConexaoBanco.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        }
+    public List<Veiculo> buscarInativos() throws Exception {
+        return buscarTodos().stream().filter(v -> !v.isAtivo()).collect(Collectors.toList());
     }
 
-    private Veiculo mapear(ResultSet rs) throws SQLException {
-        return new Veiculo(
-                rs.getInt("id_veiculo"),
-                rs.getString("placa"),
-                CategoriaVeiculo.valueOf(rs.getString("categoria")),
-                rs.getString("marca"),
-                rs.getString("modelo"),
-                rs.getInt("ano_fab"),
-                rs.getBoolean("status")
-        );
+    public List<Veiculo> buscarPorCategoria(CategoriaVeiculo categoria) throws Exception {
+        return buscarTodos().stream().filter(v -> v.getCategoria() == categoria).collect(Collectors.toList());
+    }
+
+    public void atualizar(Veiculo v) throws Exception {
+        List<Veiculo> lista = buscarTodos();
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getIdVeiculo() == v.getIdVeiculo()) {
+                lista.set(i, v);
+                break;
+            }
+        }
+        gravarTodos(lista);
+    }
+
+    public void excluir(int id) throws Exception {
+        List<Veiculo> lista = buscarTodos();
+        lista.removeIf(v -> v.getIdVeiculo() == id);
+        gravarTodos(lista);
+    }
+
+    private void gravarTodos(List<Veiculo> lista) throws Exception {
+        List<String> linhas = lista.stream().map(v -> String.join(";",
+                String.valueOf(v.getIdVeiculo()), v.getPlaca(), v.getCategoria().name(),
+                v.getMarca(), v.getModelo(), String.valueOf(v.getAnoFabricacao()),
+                String.valueOf(v.isAtivo())
+        )).collect(Collectors.toList());
+        ArquivoUtil.escreverLinhas(ARQUIVO, linhas);
     }
 }

@@ -23,38 +23,38 @@ public class AbastecimentoService {
     @Autowired
     private TipoDespesaRepository tipoDespesaRepo;
 
-    public void salvar(Abastecimento a) throws SQLException {
+    public void salvar(Abastecimento a) throws Exception {
         validar(a);
         repo.salvar(a);
         gerarDespesaAutomatica(a);
     }
 
-    public void atualizar(Abastecimento a) throws SQLException {
+    public void atualizar(Abastecimento a) throws Exception {
         validar(a);
         repo.atualizar(a);
     }
 
-    public void excluir(int id) throws SQLException {
+    public void excluir(int id) throws Exception {
         repo.excluir(id);
     }
 
-    public List<Abastecimento> listar() throws SQLException {
+    public List<Abastecimento> listar() throws Exception {
         return repo.buscarTodos();
     }
 
-    public Abastecimento buscarPorId(int id) throws SQLException {
+    public Abastecimento buscarPorId(int id) throws Exception {
         return repo.buscarPorId(id);
     }
 
-    public List<Abastecimento> listarPorVeiculo(int idVeiculo) throws SQLException {
+    public List<Abastecimento> listarPorVeiculo(int idVeiculo) throws Exception {
         return repo.buscarPorVeiculo(idVeiculo);
     }
 
-    public List<Object[]> listarConsumoMedioPorVeiculo() throws SQLException {
+    public List<Object[]> listarConsumoMedioPorVeiculo() throws Exception {
         return repo.buscarConsumoMedioPorVeiculo();
     }
 
-    public List<Abastecimento> listarPorVeiculoComConsumo(int idVeiculo) throws SQLException {
+    public List<Abastecimento> listarPorVeiculoComConsumo(int idVeiculo) throws Exception {
         List<Abastecimento> lista = repo.buscarPorVeiculo(idVeiculo);
 
         for (int i = 0; i < lista.size(); i++) {
@@ -76,7 +76,7 @@ public class AbastecimentoService {
         return lista;
     }
 
-    private void gerarDespesaAutomatica(Abastecimento a) throws SQLException {
+    private void gerarDespesaAutomatica(Abastecimento a) throws Exception {
         TipoDespesa tipoCombustivel = tipoDespesaRepo.buscarPorId(TipoDespesa.ID_COMBUSTIVEL);
 
         String descricao = String.format("Abastecimento em %s - %.2f L",
@@ -96,7 +96,7 @@ public class AbastecimentoService {
         despesaRepo.salvar(despesa);
     }
 
-    private void validar(Abastecimento a) throws SQLException {
+    private void validar(Abastecimento a) throws Exception {
         if (a.getIdVeiculo() <= 0)
             throw new IllegalArgumentException("Selecione um veículo.");
 

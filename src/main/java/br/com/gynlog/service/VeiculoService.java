@@ -15,36 +15,107 @@ public class VeiculoService {
     @Autowired
     private VeiculoRepository repo;
 
-    public void salvar(Veiculo v) throws SQLException {
+    private static class No {
+        Veiculo veiculo;
+        No proximo;
+
+        No(Veiculo veiculo) {
+            this.veiculo = veiculo;
+            this.proximo = null;
+        }
+    }
+
+    private static class FilaVeiculo {
+        private No inicio;
+        private No fim;
+        private int tamanho;
+
+        FilaVeiculo() {
+            this.inicio = null;
+            this.fim = null;
+            this.tamanho = 0;
+        }
+
+        void enfileirar(Veiculo v) {
+            No novo = new No(v);
+            if (fim == null) {
+                inicio = novo;
+                fim = novo;
+            } else {
+                fim.proximo = novo;
+                fim = novo;
+            }
+            tamanho++;
+        }
+
+        Veiculo desenfileirar() {
+            if (inicio == null) return null;
+            Veiculo v = inicio.veiculo;
+            inicio = inicio.proximo;
+            if (inicio == null) fim = null;
+            tamanho--;
+            return v;
+        }
+
+        boolean estaVazia() { return inicio == null; }
+        int getTamanho()    { return tamanho; }
+    }
+
+    public void salvar(Veiculo v) throws Exception {
         validar(v);
         repo.salvar(v);
     }
 
-    public void atualizar(Veiculo v) throws SQLException {
+    public void atualizar(Veiculo v) throws Exception {
         validar(v);
         repo.atualizar(v);
     }
 
-    public void excluir(int id) throws SQLException {
+    public void excluir(int id) throws Exception {
         repo.excluir(id);
     }
 
-    public List<Veiculo> listar() throws SQLException {
+    public List<Veiculo> listar() throws Exception {
         return repo.buscarTodos();
     }
 
-    public Veiculo buscarPorId(int id) throws SQLException {
+    public Veiculo buscarPorId(int id) throws Exception {
         return repo.buscarPorId(id);
     }
 
-    public List<Veiculo> listarInativos() throws SQLException {
-        return repo.buscarInativos();
+    public List<Veiculo> listarInativos() throws Exception {
+        List<Veiculo> dadosBanco = repo.buscarInativos();
+
+        FilaVeiculo fila = new FilaVeiculo();
+        for (Veiculo v : dadosBanco) {
+            fila.enfileirar(v);
+        }
+
+        List<Veiculo> resultado = new java.util.ArrayList<>();
+        while (!fila.estaVazia()) {
+            resultado.add(fila.desenfileirar());
+        }
+
+        return resultado;
     }
 
-    public List<Veiculo> listarPorCategoria(CategoriaVeiculo categoria) throws SQLException {
+    public List<Veiculo> listarPorCategoria(CategoriaVeiculo categoria) throws Exception {
         return repo.buscarPorCategoria(categoria);
     }
-    
+
+    public List<Veiculo> buscaSequencial(String termo) throws Exception {
+        List<Veiculo> todos = repo.buscarTodos();
+        List<Veiculo> encontrados = new java.util.ArrayList<>();
+        String termoMin = termo.toLowerCase().trim();
+
+        for (Veiculo v : todos) {
+            if (v.getPlaca().toLowerCase().contains(termoMin) || v.getModelo().toLowerCase().contains(termoMin)) {
+                encontrados.add(v);
+            }
+        }
+        return encontrados;
+    }
+
     private void validar(Veiculo v) {
         if (v.getPlaca() == null || v.getPlaca().trim().isEmpty())
             throw new IllegalArgumentException("A placa é obrigatória.");

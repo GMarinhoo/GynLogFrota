@@ -160,6 +160,11 @@ public class PainelAbastecimentos extends JPanel {
                 return;
             }
             LocalDate data = LocalDate.parse(txtData.getText().trim(), FMT);
+
+            if (data.isAfter(LocalDate.now())) {
+                throw new Exception("A data de abastecimento não pode estar no futuro.");
+            }
+
             double odometro = Double.parseDouble(txtOdometro.getText().trim().replace(",", "."));
             double litros   = Double.parseDouble(txtLitros.getText().trim().replace(",", "."));
             double valor    = Double.parseDouble(txtValor.getText().trim().replace(",", "."));

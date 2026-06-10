@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class TipoDespesaService {
 
-    private static final int ID_MAXIMO_PROTEGIDO = 5;
+    private static final int ID_MAXIMO_PROTEGIDO = 4;
 
     @Autowired
     private TipoDespesaRepository repo;

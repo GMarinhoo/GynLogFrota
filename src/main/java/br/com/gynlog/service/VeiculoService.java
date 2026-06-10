@@ -134,6 +134,16 @@ public class VeiculoService {
 
         int anoAtual = Year.now().getValue();
         if (v.getAnoFabricacao() < 1950 || v.getAnoFabricacao() > anoAtual + 1)
-            throw new IllegalArgumentException("Ano de fabricação inválido (1950 a " + (anoAtual + 1) + ").");
+            throw new IllegalArgumentException("Ano de fabricação inválido (1980 a " + (anoAtual + 1) + ").");
+
+        try {
+            for (Veiculo ve : repo.buscarTodos()) {
+                if (ve.getPlaca().equalsIgnoreCase(v.getPlaca()) && ve.getIdVeiculo() != v.getIdVeiculo()) {
+                    throw new IllegalArgumentException("Já existe um veículo cadastrado com esta placa.");
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 }

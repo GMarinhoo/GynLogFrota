@@ -14,33 +14,41 @@ public class DespesaRepository {
     private static final String ARQUIVO = "despesas.txt";
 
     public void salvar(Despesa d) throws Exception {
-        List<Despesa> lista = buscarTodos();
+        List<Despesa> lista = buscarTodasIncluindoDeletadas();
         int maxId = lista.stream().mapToInt(Despesa::getIdDespesa).max().orElse(0);
         d.setIdDespesa(maxId + 1);
+        d.setDeletado(false);
         lista.add(d);
         gravarTodos(lista);
     }
 
     public List<Despesa> buscarTodos() throws Exception {
+        return buscarTodasIncluindoDeletadas().stream()
+                .filter(d -> !d.isDeletado())
+                .sorted((d1, d2) -> d2.getData().compareTo(d1.getData()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Despesa> buscarTodasIncluindoDeletadas() throws Exception {
         List<Despesa> lista = new ArrayList<>();
         TipoDespesaRepository tipoRepo = new TipoDespesaRepository();
         List<TipoDespesa> tipos = tipoRepo.buscarTodos();
 
         for (String linha : ArquivoUtil.lerLinhas(ARQUIVO)) {
-            String[] dados = linha.split(";");
-            if (dados.length == 7) {
-                int idTipo = Integer.parseInt(dados[2]);
+            String[] d = linha.split(";");
+            if (d.length >= 7) {
+                int idTipo = Integer.parseInt(d[2]);
                 TipoDespesa tipo = tipos.stream().filter(t -> t.getIdTipoDespesa() == idTipo).findFirst()
                         .orElse(new TipoDespesa(idTipo, "Desconhecido"));
-
-                lista.add(new Despesa(
-                        Integer.parseInt(dados[0]), Integer.parseInt(dados[1]), tipo,
-                        dados[3], LocalDate.parse(dados[4]), Double.parseDouble(dados[5]),
-                        Boolean.parseBoolean(dados[6])
-                ));
+                Despesa despesa = new Despesa(
+                        Integer.parseInt(d[0]), Integer.parseInt(d[1]), tipo,
+                        d[3], LocalDate.parse(d[4]), Double.parseDouble(d[5]),
+                        Boolean.parseBoolean(d[6])
+                );
+                despesa.setDeletado(d.length >= 8 && Boolean.parseBoolean(d[7]));
+                lista.add(despesa);
             }
         }
-        lista.sort((d1, d2) -> d2.getData().compareTo(d1.getData()));
         return lista;
     }
 
@@ -49,7 +57,7 @@ public class DespesaRepository {
     }
 
     public void atualizar(Despesa d) throws Exception {
-        List<Despesa> lista = buscarTodos();
+        List<Despesa> lista = buscarTodasIncluindoDeletadas();
         for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i).getIdDespesa() == d.getIdDespesa()) {
                 lista.set(i, d);
@@ -59,14 +67,37 @@ public class DespesaRepository {
         gravarTodos(lista);
     }
 
+    /**
+     * Soft delete — marca o registro como deletado no TXT, nunca remove a linha.
+     */
     public void excluir(int id) throws Exception {
-        List<Despesa> lista = buscarTodos();
-        lista.removeIf(d -> d.getIdDespesa() == id);
+        List<Despesa> lista = buscarTodasIncluindoDeletadas();
+        for (Despesa d : lista) {
+            if (d.getIdDespesa() == id) {
+                d.setDeletado(true);
+                break;
+            }
+        }
         gravarTodos(lista);
     }
 
     public List<Despesa> buscarPorVeiculo(int idVeiculo) throws Exception {
         return buscarTodos().stream().filter(d -> d.getIdVeiculo() == idVeiculo).collect(Collectors.toList());
+    }
+
+    /**
+     * Busca a despesa gerada automaticamente por um abastecimento específico.
+     * Critério: mesmo veículo + mesmo valor + mesma data + geradaPorAbastecimento = true.
+     * Usado pelo AbastecimentoService para propagar o soft delete ao excluir um abastecimento.
+     */
+    public Optional<Despesa> buscarDespesaDoAbastecimento(int idVeiculo, LocalDate data, double valor) throws Exception {
+        return buscarTodasIncluindoDeletadas().stream()
+                .filter(d -> d.getIdVeiculo() == idVeiculo
+                        && d.isGeradaPorAbastecimento()
+                        && !d.isDeletado()
+                        && d.getData().equals(data)
+                        && Math.abs(d.getValor() - valor) < 0.01)
+                .findFirst();
     }
 
     public List<Despesa> buscarPorMes(int mes, int ano) throws Exception {
@@ -93,7 +124,9 @@ public class DespesaRepository {
 
     public List<Despesa> buscarMultasPorVeiculoAno(int idVeiculo, int ano) throws Exception {
         return buscarTodos().stream()
-                .filter(d -> d.getIdVeiculo() == idVeiculo && d.getTipoDespesa().getIdTipoDespesa() == TipoDespesa.ID_MULTA && d.getData().getYear() == ano)
+                .filter(d -> d.getIdVeiculo() == idVeiculo
+                        && d.getTipoDespesa().getIdTipoDespesa() == TipoDespesa.ID_MULTA
+                        && d.getData().getYear() == ano)
                 .sorted(Comparator.comparing(Despesa::getData))
                 .collect(Collectors.toList());
     }
@@ -145,7 +178,8 @@ public class DespesaRepository {
         List<String> linhas = lista.stream().map(d -> String.join(";",
                 String.valueOf(d.getIdDespesa()), String.valueOf(d.getIdVeiculo()),
                 String.valueOf(d.getTipoDespesa().getIdTipoDespesa()), d.getDescricao(),
-                d.getData().toString(), String.valueOf(d.getValor()), String.valueOf(d.isGeradaPorAbastecimento())
+                d.getData().toString(), String.valueOf(d.getValor()),
+                String.valueOf(d.isGeradaPorAbastecimento()), String.valueOf(d.isDeletado())
         )).collect(Collectors.toList());
         ArquivoUtil.escreverLinhas(ARQUIVO, linhas);
     }

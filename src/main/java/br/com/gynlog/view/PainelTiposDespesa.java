@@ -37,7 +37,7 @@ public class PainelTiposDespesa extends JPanel {
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         painelBotoes.setBackground(Tema.CONTEUDO_BG);
-        JButton btnSalvar  = Tema.botaoPrimario("+ Adicionar / Salvar");
+        JButton btnSalvar  = Tema.botaoPrimario("Salvar");
         JButton btnExcluir = Tema.botaoPerigo("Excluir");
         JButton btnLimpar  = Tema.botaoSecundario("Limpar");
 

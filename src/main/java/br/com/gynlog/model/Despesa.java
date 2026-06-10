@@ -11,6 +11,7 @@ public class Despesa {
     private LocalDate data;
     private double valor;
     private boolean geradaPorAbastecimento;
+    private boolean deletado; // soft delete — linha permanece no TXT, só é ocultada na interface
 
     public Despesa() {}
 
@@ -23,6 +24,7 @@ public class Despesa {
         this.data = data;
         this.valor = valor;
         this.geradaPorAbastecimento = geradaPorAbastecimento;
+        this.deletado = false;
     }
 
     public int getIdDespesa() { return idDespesa; }
@@ -47,4 +49,7 @@ public class Despesa {
     public void setGeradaPorAbastecimento(boolean geradaPorAbastecimento) {
         this.geradaPorAbastecimento = geradaPorAbastecimento;
     }
+
+    public boolean isDeletado() { return deletado; }
+    public void setDeletado(boolean deletado) { this.deletado = deletado; }
 }

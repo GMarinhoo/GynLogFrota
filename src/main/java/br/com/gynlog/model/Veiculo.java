@@ -11,6 +11,7 @@ public class Veiculo {
     private String modelo;
     private int anoFabricacao;
     private boolean ativo;
+    private boolean deletado; // soft delete — linha permanece no TXT, só é ocultada na interface
 
     public Veiculo() {}
 
@@ -23,6 +24,7 @@ public class Veiculo {
         this.modelo = modelo;
         this.anoFabricacao = anoFabricacao;
         this.ativo = ativo;
+        this.deletado = false;
     }
 
     public int getIdVeiculo() { return idVeiculo; }
@@ -45,7 +47,10 @@ public class Veiculo {
 
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
-    
+
+    public boolean isDeletado() { return deletado; }
+    public void setDeletado(boolean deletado) { this.deletado = deletado; }
+
     @Override
     public String toString() {
         return modelo + " - " + placa;

@@ -129,13 +129,30 @@ public class Tema {
         tabela.setFillsViewportHeight(true);
         tabela.setIntercellSpacing(new Dimension(0, 1));
 
-
         JTableHeader header = tabela.getTableHeader();
         header.setFont(FONTE_HEADER);
         header.setBackground(TABELA_HEADER_BG);
         header.setForeground(TABELA_HEADER_FG);
         header.setReorderingAllowed(false);
         header.setPreferredSize(new Dimension(header.getWidth(), 32));
+
+        header.setDefaultRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int col) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(
+                        t, value, isSelected, hasFocus, row, col);
+                lbl.setBackground(TABELA_HEADER_BG);
+                lbl.setForeground(TABELA_HEADER_FG);
+                lbl.setFont(FONTE_HEADER);
+                lbl.setHorizontalAlignment(SwingConstants.LEFT);
+                lbl.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(75, 78, 98)),
+                        BorderFactory.createEmptyBorder(0, 8, 0, 8)));
+                lbl.setOpaque(true);
+                return lbl;
+            }
+        });
 
         tabela.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override

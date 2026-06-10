@@ -41,17 +41,15 @@ public class PainelVeiculos extends JPanel {
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         painelBotoes.setBackground(Tema.CONTEUDO_BG);
-        JButton btnNovo   = Tema.botaoPrimario("+ Adicionar");
-        JButton btnSalvar = Tema.botaoSecundario("Salvar");
-        JButton btnExcluir= Tema.botaoPerigo("Excluir");
-        JButton btnLimpar = Tema.botaoSecundario("Limpar");
 
-        btnNovo.addActionListener(e -> limparFormulario());
+        JButton btnSalvar  = Tema.botaoPrimario("Salvar");
+        JButton btnExcluir = Tema.botaoPerigo("Excluir");
+        JButton btnLimpar  = Tema.botaoSecundario("Limpar");
+
         btnSalvar.addActionListener(e -> salvar());
         btnExcluir.addActionListener(e -> excluir());
         btnLimpar.addActionListener(e -> limparFormulario());
 
-        painelBotoes.add(btnNovo);
         painelBotoes.add(btnSalvar);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnLimpar);
@@ -76,26 +74,36 @@ public class PainelVeiculos extends JPanel {
         scroll.setBorder(BorderFactory.createLineBorder(new Color(220, 222, 228), 1));
         scroll.getViewport().setBackground(Tema.PAINEL_BG);
 
-        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        painelBusca.setBackground(Tema.CONTEUDO_BG);
-        painelBusca.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
-
         JTextField txtBusca = Tema.campo();
-        txtBusca.setPreferredSize(new Dimension(200, 32));
-        JButton btnBuscar = Tema.botaoSecundario("Buscar");
-        JButton btnLimparBusca = Tema.botaoSecundario("Limpar Busca");
+        JButton btnBuscar     = Tema.botaoSecundario("Buscar");
+        JButton btnLimparBusca = Tema.botaoSecundario("Limpar");
+
+        btnBuscar.setPreferredSize(new Dimension(90, 32));
+        btnLimparBusca.setPreferredSize(new Dimension(90, 32));
 
         btnBuscar.addActionListener(e -> realizarBusca(txtBusca.getText()));
         btnLimparBusca.addActionListener(e -> { txtBusca.setText(""); carregarTabela(); });
         txtBusca.addActionListener(e -> realizarBusca(txtBusca.getText()));
 
-        btnBuscar.addActionListener(e -> realizarBusca(txtBusca.getText()));
-        btnLimparBusca.addActionListener(e -> { txtBusca.setText(""); carregarTabela(); });
+        JPanel painelBusca = new JPanel(new GridBagLayout());
+        painelBusca.setBackground(Tema.CONTEUDO_BG);
+        painelBusca.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
 
-        painelBusca.add(Tema.label("Pesquisar (Placa ou Modelo):"));
-        painelBusca.add(txtBusca);
-        painelBusca.add(btnBuscar);
-        painelBusca.add(btnLimparBusca);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 0, 8);
+
+        gbc.gridx = 0; gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        painelBusca.add(Tema.label("Pesquisar (Placa ou Modelo):"), gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        painelBusca.add(txtBusca, gbc);
+
+        gbc.gridx = 2; gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+        painelBusca.add(btnBuscar, gbc);
+
+        gbc.gridx = 3; gbc.insets = new Insets(0, 0, 0, 0);
+        painelBusca.add(btnLimparBusca, gbc);
 
         JPanel painelCentral = new JPanel(new BorderLayout());
         painelCentral.setBackground(Tema.CONTEUDO_BG);
@@ -124,13 +132,13 @@ public class PainelVeiculos extends JPanel {
         lblIdSelecionado.setForeground(Tema.TEXTO_TITULO);
         lblIdSelecionado.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        txtPlaca   = Tema.campo();
-        txtMarca   = Tema.campo();
-        txtModelo  = Tema.campo();
-        txtAno     = Tema.campo();
+        txtPlaca    = Tema.campo();
+        txtMarca    = Tema.campo();
+        txtModelo   = Tema.campo();
+        txtAno      = Tema.campo();
         cbCategoria = new JComboBox<>(CategoriaVeiculo.values());
         cbCategoria.setFont(Tema.FONTE_CAMPO);
-        chkAtivo   = new JCheckBox("Ativo na frota", true);
+        chkAtivo    = new JCheckBox("Ativo na frota", true);
         chkAtivo.setBackground(Tema.PAINEL_BG);
         chkAtivo.setFont(Tema.FONTE_LABEL);
 
@@ -161,8 +169,7 @@ public class PainelVeiculos extends JPanel {
         p.setBackground(Tema.PAINEL_BG);
         p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel lbl = Tema.label(rotulo);
-        p.add(lbl, BorderLayout.NORTH);
+        p.add(Tema.label(rotulo), BorderLayout.NORTH);
         p.add(tf, BorderLayout.CENTER);
         return p;
     }
@@ -229,12 +236,8 @@ public class PainelVeiculos extends JPanel {
             List<Veiculo> lista = service.listar();
             for (Veiculo v : lista) {
                 modeloTabela.addRow(new Object[]{
-                        v.getIdVeiculo(),
-                        v.getPlaca(),
-                        v.getCategoria(),
-                        v.getMarca(),
-                        v.getModelo(),
-                        v.getAnoFabricacao(),
+                        v.getIdVeiculo(), v.getPlaca(), v.getCategoria(),
+                        v.getMarca(), v.getModelo(), v.getAnoFabricacao(),
                         v.isAtivo() ? "Ativo" : "Inativo"
                 });
             }
@@ -275,17 +278,6 @@ public class PainelVeiculos extends JPanel {
         tabela.clearSelection();
     }
 
-    private static class LimiteCaracteres extends javax.swing.text.PlainDocument {
-        private final int limite;
-        LimiteCaracteres(int limite) { this.limite = limite; }
-        @Override
-        public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-                throws javax.swing.text.BadLocationException {
-            if (str == null) return;
-            if ((getLength() + str.length()) <= limite) super.insertString(offs, str, a);
-        }
-    }
-
     private void realizarBusca(String termo) {
         if (termo == null || termo.trim().isEmpty()) {
             carregarTabela();
@@ -303,6 +295,17 @@ public class PainelVeiculos extends JPanel {
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao buscar: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    static class LimiteCaracteres extends javax.swing.text.PlainDocument {
+        private final int limite;
+        LimiteCaracteres(int limite) { this.limite = limite; }
+        @Override
+        public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+                throws javax.swing.text.BadLocationException {
+            if (str == null) return;
+            if ((getLength() + str.length()) <= limite) super.insertString(offs, str, a);
         }
     }
 }

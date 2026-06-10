@@ -29,7 +29,7 @@ public class PainelDespesas extends JPanel {
     private JComboBox<TipoDespesa> cbTipo;
     private JTextField txtDescricao, txtData, txtValor;
     private JLabel lblIdSelecionado, lblAviso;
-    private JButton btnEditar;
+    private JButton btnEditar, btnExcluir;
 
     public PainelDespesas(ConfigurableApplicationContext context) {
         this.service        = context.getBean(DespesaService.class);
@@ -57,7 +57,7 @@ public class PainelDespesas extends JPanel {
         JButton btnSalvar  = Tema.botaoPrimario("+ Lançar");
         btnEditar = Tema.botaoSecundario("Salvar edição");
         btnEditar.setEnabled(false);
-        JButton btnExcluir = Tema.botaoPerigo("Excluir");
+        btnExcluir = Tema.botaoPerigo("Excluir");
         JButton btnLimpar  = Tema.botaoSecundario("Limpar");
 
         btnSalvar.addActionListener(e -> salvar());
@@ -278,7 +278,13 @@ public class PainelDespesas extends JPanel {
             txtDescricao.setText(d.getDescricao());
             txtData.setText(d.getData().format(FMT));
             txtValor.setText(String.format("%.2f", d.getValor()));
-            btnEditar.setEnabled(true);
+            if (d.isGeradaPorAbastecimento()) {
+                btnEditar.setEnabled(false);
+                btnExcluir.setEnabled(false);
+            } else {
+                btnEditar.setEnabled(true);
+                btnExcluir.setEnabled(true);
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

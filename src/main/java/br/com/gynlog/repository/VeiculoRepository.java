@@ -13,23 +13,32 @@ public class VeiculoRepository {
     private static final String ARQUIVO = "veiculos.txt";
 
     public void salvar(Veiculo v) throws Exception {
-        List<Veiculo> lista = buscarTodos();
+        List<Veiculo> lista = buscarTodosIncluindoDeletados();
         int maxId = lista.stream().mapToInt(Veiculo::getIdVeiculo).max().orElse(0);
         v.setIdVeiculo(maxId + 1);
+        v.setDeletado(false);
         lista.add(v);
         gravarTodos(lista);
     }
 
     public List<Veiculo> buscarTodos() throws Exception {
+        return buscarTodosIncluindoDeletados().stream()
+                .filter(v -> !v.isDeletado())
+                .collect(Collectors.toList());
+    }
+
+    private List<Veiculo> buscarTodosIncluindoDeletados() throws Exception {
         List<Veiculo> lista = new ArrayList<>();
         for (String linha : ArquivoUtil.lerLinhas(ARQUIVO)) {
-            String[] dados = linha.split(";");
-            if (dados.length == 7) {
-                lista.add(new Veiculo(
-                        Integer.parseInt(dados[0]), dados[1],
-                        CategoriaVeiculo.valueOf(dados[2]), dados[3], dados[4],
-                        Integer.parseInt(dados[5]), Boolean.parseBoolean(dados[6])
-                ));
+            String[] d = linha.split(";");
+            if (d.length >= 7) {
+                Veiculo v = new Veiculo(
+                        Integer.parseInt(d[0]), d[1],
+                        CategoriaVeiculo.valueOf(d[2]), d[3], d[4],
+                        Integer.parseInt(d[5]), Boolean.parseBoolean(d[6])
+                );
+                v.setDeletado(d.length >= 8 && Boolean.parseBoolean(d[7]));
+                lista.add(v);
             }
         }
         return lista;
@@ -48,7 +57,7 @@ public class VeiculoRepository {
     }
 
     public void atualizar(Veiculo v) throws Exception {
-        List<Veiculo> lista = buscarTodos();
+        List<Veiculo> lista = buscarTodosIncluindoDeletados();
         for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i).getIdVeiculo() == v.getIdVeiculo()) {
                 lista.set(i, v);
@@ -59,8 +68,13 @@ public class VeiculoRepository {
     }
 
     public void excluir(int id) throws Exception {
-        List<Veiculo> lista = buscarTodos();
-        lista.removeIf(v -> v.getIdVeiculo() == id);
+        List<Veiculo> lista = buscarTodosIncluindoDeletados();
+        for (Veiculo v : lista) {
+            if (v.getIdVeiculo() == id) {
+                v.setDeletado(true);
+                break;
+            }
+        }
         gravarTodos(lista);
     }
 
@@ -68,7 +82,7 @@ public class VeiculoRepository {
         List<String> linhas = lista.stream().map(v -> String.join(";",
                 String.valueOf(v.getIdVeiculo()), v.getPlaca(), v.getCategoria().name(),
                 v.getMarca(), v.getModelo(), String.valueOf(v.getAnoFabricacao()),
-                String.valueOf(v.isAtivo())
+                String.valueOf(v.isAtivo()), String.valueOf(v.isDeletado())
         )).collect(Collectors.toList());
         ArquivoUtil.escreverLinhas(ARQUIVO, linhas);
     }

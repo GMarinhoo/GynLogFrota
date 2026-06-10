@@ -14,26 +14,38 @@ public class AbastecimentoRepository {
     private static final String ARQUIVO = "abastecimentos.txt";
 
     public void salvar(Abastecimento a) throws Exception {
-        List<Abastecimento> lista = buscarTodos();
+        List<Abastecimento> lista = buscarTodosIncluindoDeletados();
         int maxId = lista.stream().mapToInt(Abastecimento::getIdAbastecimento).max().orElse(0);
         a.setIdAbastecimento(maxId + 1);
+        a.setDeletado(false);
         lista.add(a);
         gravarTodos(lista);
     }
 
+    /**
+     * Retorna apenas abastecimentos não deletados — usado pela interface.
+     */
     public List<Abastecimento> buscarTodos() throws Exception {
+        return buscarTodosIncluindoDeletados().stream()
+                .filter(a -> !a.isDeletado())
+                .sorted((a1, a2) -> a2.getData().compareTo(a1.getData()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Abastecimento> buscarTodosIncluindoDeletados() throws Exception {
         List<Abastecimento> lista = new ArrayList<>();
         for (String linha : ArquivoUtil.lerLinhas(ARQUIVO)) {
-            String[] dados = linha.split(";");
-            if (dados.length == 6) {
-                lista.add(new Abastecimento(
-                        Integer.parseInt(dados[0]), Integer.parseInt(dados[1]),
-                        LocalDate.parse(dados[2]), Double.parseDouble(dados[3]),
-                        Double.parseDouble(dados[4]), Double.parseDouble(dados[5])
-                ));
+            String[] d = linha.split(";");
+            if (d.length >= 6) {
+                Abastecimento a = new Abastecimento(
+                        Integer.parseInt(d[0]), Integer.parseInt(d[1]),
+                        LocalDate.parse(d[2]), Double.parseDouble(d[3]),
+                        Double.parseDouble(d[4]), Double.parseDouble(d[5])
+                );
+                a.setDeletado(d.length >= 7 && Boolean.parseBoolean(d[6]));
+                lista.add(a);
             }
         }
-        lista.sort((a1, a2) -> a2.getData().compareTo(a1.getData()));
         return lista;
     }
 
@@ -68,7 +80,8 @@ public class AbastecimentoRepository {
             lista.sort(Comparator.comparing(Abastecimento::getOdometro));
 
             double totalKm = lista.get(lista.size() - 1).getOdometro() - lista.get(0).getOdometro();
-            double totalLitros = lista.stream().mapToDouble(Abastecimento::getQtdLitros).sum();
+            double totalLitros = lista.subList(1, lista.size())
+                    .stream().mapToDouble(Abastecimento::getQtdLitros).sum();
             double media = totalLitros > 0 ? totalKm / totalLitros : 0;
 
             Veiculo v = veiculos.stream().filter(ve -> ve.getIdVeiculo() == entry.getKey()).findFirst().orElse(null);
@@ -81,7 +94,7 @@ public class AbastecimentoRepository {
     }
 
     public void atualizar(Abastecimento a) throws Exception {
-        List<Abastecimento> lista = buscarTodos();
+        List<Abastecimento> lista = buscarTodosIncluindoDeletados();
         for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i).getIdAbastecimento() == a.getIdAbastecimento()) {
                 lista.set(i, a);
@@ -92,8 +105,13 @@ public class AbastecimentoRepository {
     }
 
     public void excluir(int id) throws Exception {
-        List<Abastecimento> lista = buscarTodos();
-        lista.removeIf(a -> a.getIdAbastecimento() == id);
+        List<Abastecimento> lista = buscarTodosIncluindoDeletados();
+        for (Abastecimento a : lista) {
+            if (a.getIdAbastecimento() == id) {
+                a.setDeletado(true);
+                break;
+            }
+        }
         gravarTodos(lista);
     }
 
@@ -101,7 +119,8 @@ public class AbastecimentoRepository {
         List<String> linhas = lista.stream().map(a -> String.join(";",
                 String.valueOf(a.getIdAbastecimento()), String.valueOf(a.getIdVeiculo()),
                 a.getData().toString(), String.valueOf(a.getOdometro()),
-                String.valueOf(a.getQtdLitros()), String.valueOf(a.getValorTotal())
+                String.valueOf(a.getQtdLitros()), String.valueOf(a.getValorTotal()),
+                String.valueOf(a.isDeletado())
         )).collect(Collectors.toList());
         ArquivoUtil.escreverLinhas(ARQUIVO, linhas);
     }

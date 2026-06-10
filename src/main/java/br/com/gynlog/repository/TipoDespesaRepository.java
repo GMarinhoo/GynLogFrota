@@ -16,9 +16,10 @@ public class TipoDespesaRepository {
         List<String> linhas = ArquivoUtil.lerLinhas(ARQUIVO);
         if (linhas.isEmpty()) {
             List<TipoDespesa> padroes = Arrays.asList(
-                    new TipoDespesa(TipoDespesa.ID_COMBUSTIVEL, "Combustível"),
-                    new TipoDespesa(TipoDespesa.ID_IPVA, "IPVA"),
-                    new TipoDespesa(TipoDespesa.ID_MULTA, "Multa")
+                    new TipoDespesa(1, "Combustível"),
+                    new TipoDespesa(2, "Manutenção"),
+                    new TipoDespesa(3, "IPVA"),
+                    new TipoDespesa(4, "Multa")
             );
             gravarTodos(padroes);
             return new ArrayList<>(padroes);
@@ -41,7 +42,7 @@ public class TipoDespesaRepository {
     public void salvar(TipoDespesa t) throws Exception {
         List<TipoDespesa> lista = buscarTodos();
         int maxId = lista.stream().mapToInt(TipoDespesa::getIdTipoDespesa).max().orElse(0);
-        t.setIdTipoDespesa(Math.max(maxId, 5) + 1);
+        t.setIdTipoDespesa(maxId + 1);
         lista.add(t);
         gravarTodos(lista);
     }

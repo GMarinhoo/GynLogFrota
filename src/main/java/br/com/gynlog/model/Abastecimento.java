@@ -10,6 +10,7 @@ public class Abastecimento {
     private double odometro;
     private double qtdLitros;
     private double valorTotal;
+    private boolean deletado; // soft delete — linha permanece no TXT, só é ocultada na interface
     private transient double kmRodados;
     private transient double kmPorLitro;
 
@@ -23,6 +24,7 @@ public class Abastecimento {
         this.odometro = odometro;
         this.qtdLitros = qtdLitros;
         this.valorTotal = valorTotal;
+        this.deletado = false;
     }
 
     public int getIdAbastecimento() { return idAbastecimento; }
@@ -42,6 +44,9 @@ public class Abastecimento {
 
     public double getValorTotal() { return valorTotal; }
     public void setValorTotal(double valorTotal) { this.valorTotal = valorTotal; }
+
+    public boolean isDeletado() { return deletado; }
+    public void setDeletado(boolean deletado) { this.deletado = deletado; }
 
     public double getKmRodados() { return kmRodados; }
     public void setKmRodados(double kmRodados) { this.kmRodados = kmRodados; }

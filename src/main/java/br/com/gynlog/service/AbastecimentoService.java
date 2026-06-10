@@ -8,7 +8,6 @@ import br.com.gynlog.repository.DespesaRepository;
 import br.com.gynlog.repository.TipoDespesaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
@@ -35,6 +34,18 @@ public class AbastecimentoService {
     }
 
     public void excluir(int id) throws Exception {
+        Abastecimento a = repo.buscarPorId(id);
+        if (a != null) {
+            despesaRepo.buscarDespesaDoAbastecimento(a.getIdVeiculo(), a.getData(), a.getValorTotal())
+                    .ifPresent(d -> {
+                        try {
+                            d.setDeletado(true);
+                            despesaRepo.atualizar(d);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+        }
         repo.excluir(id);
     }
 
@@ -115,7 +126,7 @@ public class AbastecimentoService {
         Abastecimento anterior = repo.buscarAnterior(a.getIdVeiculo(), a.getOdometro());
         if (anterior != null && a.getOdometro() <= anterior.getOdometro())
             throw new IllegalArgumentException(
-                String.format("O hodômetro deve ser maior que o último registrado (%.0f km).", anterior.getOdometro())
+                    String.format("O hodômetro deve ser maior que o último registrado (%.0f km).", anterior.getOdometro())
             );
     }
 }

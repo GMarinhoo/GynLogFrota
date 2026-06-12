@@ -123,10 +123,17 @@ public class AbastecimentoService {
         if (a.getValorTotal() <= 0)
             throw new IllegalArgumentException("O valor total deve ser maior que zero.");
 
-        Abastecimento anterior = repo.buscarAnterior(a.getIdVeiculo(), a.getOdometro());
-        if (anterior != null && a.getOdometro() <= anterior.getOdometro())
-            throw new IllegalArgumentException(
-                    String.format("O hodômetro deve ser maior que o último registrado (%.0f km).", anterior.getOdometro())
-            );
+        List<Abastecimento> todosDoVeiculo = repo.buscarPorVeiculo(a.getIdVeiculo());
+        if (!todosDoVeiculo.isEmpty()) {
+            double maiorOdometro = todosDoVeiculo.stream()
+                    .mapToDouble(Abastecimento::getOdometro)
+                    .max()
+                    .getAsDouble();
+            if (a.getOdometro() <= maiorOdometro)
+                throw new IllegalArgumentException(
+                        String.format("Hodômetro inválido. O veículo já possui registro com %.0f km. O novo valor deve ser maior que %.0f km.",
+                                maiorOdometro, maiorOdometro)
+                );
+        }
     }
 }

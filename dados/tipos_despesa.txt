@@ -1,0 +1,4 @@
+1;Combustível
+2;Manutenção
+3;IPVA
+4;Multa
